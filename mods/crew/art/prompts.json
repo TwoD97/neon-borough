@@ -1,0 +1,13 @@
+{
+  "mode": "Built-in image_gen",
+  "assets": [
+    {
+      "file": "rooftop-workshop.png",
+      "prompt": "Use case: stylized-concept. Asset type: production background artwork for a cyberpunk coding terminal and custom agent cards. Create a premium cinematic wide 16:9 illustration: inside an intimate futuristic rooftop hacker workshop overlooking a rain-soaked neon city at night, tiny charming robot repair details, architectural depth, sophisticated hand-painted game environment, rich material detail. Deep midnight navy and black plum, restrained cyan neon with small amber and magenta accents. Composition crucial: center and left 70 percent is very dark quiet glass and atmospheric shadow with minimal detail, readable code will be overlaid; the detailed workshop and distant city live along right edge and lower edge. No text, no letters, no logos, no UI, no borders, no people. Beautiful layered atmosphere, avoid overwhelming bright neon, no generic gradient wallpaper. Wide image, maximum quality."
+    },
+    {
+      "file": "agent-dock.png",
+      "prompt": "Use case: stylized-concept. Asset type: reusable background plate for an illustrated cyberpunk agent identity card, landscape 3:2. A beautiful compact futuristic robot docking alcove inside a rainy neon rooftop workshop, obsidian navy machined panels, cyan holographic cables, faint purple rim lights, tiny warm amber indicator lamps, matte graphite titanium, premium richly painted game UI asset. Small sophisticated circuit engravings and asymmetrical clipped corners. Main upper two-thirds has a dim atmospheric alcove for a robot portrait to be composited later; lower third nearly black quiet panel for text added in code. No robot or character, no text, no letters, no numbers, no logo, no watermark. Full bleed background art, strong dimensional depth, carefully controlled luminous accents near perimeter only, handcrafted cohesive cyberpunk mood. Not a screenshot or mockup: only the background artwork."
+    }
+  ]
+}

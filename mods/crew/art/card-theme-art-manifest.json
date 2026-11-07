@@ -1,0 +1,299 @@
+{
+  "method": "Validated light face bases; controlled paper face palettes and luminance-preserving chromatic material recolor; authorized neutral-metal tint with monotonic midtone lift Y + .32*sqrt(Y)*(1-Y), anchored deep seams/white highlights; alpha and outside-mask pixels exact",
+  "palettes": {
+    "pearl": {
+      "paper": [
+        230,
+        239,
+        242
+      ],
+      "primary": "#006b78",
+      "secondary": "#78509b",
+      "metal": "#c5dae5"
+    },
+    "ivory": {
+      "paper": [
+        242,
+        231,
+        214
+      ],
+      "primary": "#8d4c2e",
+      "secondary": "#795180",
+      "metal": "#d8c6aa"
+    }
+  },
+  "assets": [
+    {
+      "source": "mods/crew/art/provider-frame-claude.png",
+      "light_base": "mods/crew/art/provider-frame-claude-light.png",
+      "source_sha256": "170f34120f3332c3a17f654513565bb681f0befeff24f3af7d3b85271f1d0ac6",
+      "light_base_sha256": "9aabea97c04d889a82e670e281fdb2a2baae07e77318dce39ec3fb4265779d33",
+      "size": [
+        1942,
+        809
+      ],
+      "face_pixel_counts": [
+        654989,
+        134760
+      ],
+      "variants": [
+        {
+          "path": "mods/crew/art/provider-frame-claude-pearl.png",
+          "palette": "pearl",
+          "sha256": "f26cd720b7584603ea80c1c66809bc72d1dedc38626ff38d3c60ef7690165cea",
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 227553,
+          "changed_pixels": 1277386
+        },
+        {
+          "path": "mods/crew/art/provider-frame-claude-ivory.png",
+          "palette": "ivory",
+          "sha256": "ab08011c579167589460ecd1ebe34b132fb1ada96cb3ca0dd54d9218bb7a6bce",
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 227553,
+          "changed_pixels": 1276475
+        }
+      ]
+    },
+    {
+      "source": "mods/crew/art/provider-frame-codex.png",
+      "light_base": "mods/crew/art/provider-frame-codex-light.png",
+      "source_sha256": "367bc7e5abbced42217f28b937eb8098d2f51db56731e32534fc382a8587c05b",
+      "light_base_sha256": "93b250f9d31a2fd2728525c0c969e2ee676d008b4789e8916e5d8c602576879b",
+      "size": [
+        1942,
+        809
+      ],
+      "face_pixel_counts": [
+        633631,
+        119970
+      ],
+      "variants": [
+        {
+          "path": "mods/crew/art/provider-frame-codex-pearl.png",
+          "palette": "pearl",
+          "sha256": "a019c0b3064d2be9b4fa7e2492648c69034706acf3fa10bf995d7078ea5a1fcd",
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 398830,
+          "changed_pixels": 1246360
+        },
+        {
+          "path": "mods/crew/art/provider-frame-codex-ivory.png",
+          "palette": "ivory",
+          "sha256": "05b60c40ae656c7b34f8fa8a3d4151177b9855abdf1a41bce6be2a07f4734fea",
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 398830,
+          "changed_pixels": 1246462
+        }
+      ]
+    },
+    {
+      "source": "mods/crew/art/crew-component.png",
+      "light_base": "mods/crew/art/crew-component-light.png",
+      "source_sha256": "cdfb57b53b29c2292ebf990bb228cf7af11cbb3cc86dab2458f04aee8a486d0e",
+      "light_base_sha256": "82bd62de3d4cf934f7098da4d0e026588851864c58be21201ddcaa60393ac6da",
+      "size": [
+        2172,
+        724
+      ],
+      "face_pixel_counts": [
+        645460,
+        82623
+      ],
+      "variants": [
+        {
+          "path": "mods/crew/art/crew-component-pearl.png",
+          "palette": "pearl",
+          "sha256": "0b36fa5301e83e922a80e850483070dcbe6f210750d445f8a6a445e991bb260d",
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 240108,
+          "changed_pixels": 1061362
+        },
+        {
+          "path": "mods/crew/art/crew-component-ivory.png",
+          "palette": "ivory",
+          "sha256": "9481f8ba44b5485cb168150d4e7ffb978d6aecc3460d03b365a745b9dff3e759",
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 240108,
+          "changed_pixels": 1061515
+        }
+      ]
+    },
+    {
+      "source": "mods/pr-hub/art/pr-component.png",
+      "light_base": "mods/pr-hub/art/pr-component-light.png",
+      "source_sha256": "4fd8fe3b9180ae181e668e1d46c6741c357fefb43f836eae2c1deabe52279a26",
+      "light_base_sha256": "9f3136aad79c646fddae647f30c51be12bc40a5d9f464701c461f45f831180d6",
+      "size": [
+        2157,
+        729
+      ],
+      "face_pixel_counts": [
+        1063425,
+        13742,
+        14476,
+        13950
+      ],
+      "variants": [
+        {
+          "path": "mods/pr-hub/art/pr-component-pearl.png",
+          "palette": "pearl",
+          "sha256": "f26d7227a79c048b15b3dc7646ee67c6c2cd248617addc6be53b2f87605cf661",
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 255751,
+          "changed_pixels": 1387065
+        },
+        {
+          "path": "mods/pr-hub/art/pr-component-ivory.png",
+          "palette": "ivory",
+          "sha256": "8750356566e8ad3b5c042e90af7cbbdbcaed560eb4b79d1045e980bd535aaed5",
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 255751,
+          "changed_pixels": 1387181
+        }
+      ]
+    },
+    {
+      "source": "mods/my-spaces/art/space-frame.png",
+      "light_base": "mods/my-spaces/art/space-frame-light.png",
+      "source_sha256": "0d69d69ded79d0216d8a1d7c128ad0c730d5eb4c53bee65a2f5f5db55f90178c",
+      "light_base_sha256": "9704c4ec125bbc0bc1e4794cb5ee81d83e04df54777583af85b4844e78c5a661",
+      "size": [
+        2172,
+        724
+      ],
+      "face_pixel_counts": [
+        464575,
+        77027
+      ],
+      "variants": [
+        {
+          "path": "mods/my-spaces/art/space-frame-pearl.png",
+          "palette": "pearl",
+          "sha256": "9bc1e8e818e2875f8553274a5de988e12b222d3eba5db501ca7e3d301ddfa576",
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 311819,
+          "changed_pixels": 915666
+        },
+        {
+          "path": "mods/my-spaces/art/space-frame-ivory.png",
+          "palette": "ivory",
+          "sha256": "2e043d47c02933f976e54fbe90699c0abcf36b7d918abe9d4b6b0272e82d61c6",
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 311819,
+          "changed_pixels": 916032
+        }
+      ]
+    },
+    {
+      "source": "mods/my-spaces/art/worktree-frame.png",
+      "light_base": "mods/my-spaces/art/worktree-frame-light.png",
+      "source_sha256": "778c066af33079a4d82aa92296e409340c8364377e3aabbf4dcfcd6dfd8bd79f",
+      "light_base_sha256": "632b578f88c164622e8e74e06e11f3b2906d4acd476217a3054e7302fff0449e",
+      "size": [
+        2172,
+        724
+      ],
+      "face_pixel_counts": [
+        476316,
+        84987
+      ],
+      "variants": [
+        {
+          "path": "mods/my-spaces/art/worktree-frame-pearl.png",
+          "palette": "pearl",
+          "sha256": "a21c26a741830a56276940886c24f29b4473ac37e0008bcfc7ebb55ecc6127c5",
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 234783,
+          "changed_pixels": 914588
+        },
+        {
+          "path": "mods/my-spaces/art/worktree-frame-ivory.png",
+          "palette": "ivory",
+          "sha256": "e7d76e3d31c2703a06b542537ed3cbad767fc4c0905307131dfc34cd7f9124b7",
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 234783,
+          "changed_pixels": 914633
+        }
+      ]
+    },
+    {
+      "source": "mods/crew/art/agent-dock.png",
+      "light_base": null,
+      "source_sha256": "67a95293b88d284d8acd7c1eaa86a0e4e754f5a5d8c2330544923441513bf69b",
+      "light_base_sha256": null,
+      "size": [
+        1536,
+        1024
+      ],
+      "face_pixel_counts": [
+        447864
+      ],
+      "variants": [
+        {
+          "path": "mods/crew/art/agent-dock-pearl.png",
+          "palette": "pearl",
+          "sha256": "8cd2f771b56db8202f3bfd55e54b3f432022011548b5627fb87440842f87b8c3",
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 141085,
+          "changed_pixels": 956027
+        },
+        {
+          "path": "mods/crew/art/agent-dock-ivory.png",
+          "palette": "ivory",
+          "sha256": "b54de7cb5e184a2f61e176c10e946768ea42c31a8b4394862a2085fe007ea322",
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 141085,
+          "changed_pixels": 955179
+        }
+      ]
+    },
+    {
+      "source": "mods/my-spaces/art/space-emblem.png",
+      "light_base": null,
+      "source_sha256": "d58d65a4e6d0d3a8b3c1e8c00b9a0b5e275c1071357e4774648ea0bee200a98c",
+      "light_base_sha256": null,
+      "size": [
+        1254,
+        1254
+      ],
+      "face_pixel_counts": [
+        908592
+      ],
+      "variants": [
+        {
+          "path": "mods/my-spaces/art/space-emblem-pearl.png",
+          "palette": "pearl",
+          "sha256": "ad046346415eafe687ee24f0327da60ae6fd7fc13ab3dd11900f842d6621f9c1",
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 216844,
+          "changed_pixels": 1185908
+        },
+        {
+          "path": "mods/my-spaces/art/space-emblem-ivory.png",
+          "palette": "ivory",
+          "sha256": "66fcdbe9cddb427ffa3962f678c4467e09d9abc1e30a6f01a1d180f158db9b76",
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 216844,
+          "changed_pixels": 1187021
+        }
+      ]
+    }
+  ]
+}

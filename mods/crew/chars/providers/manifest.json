@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "method": "Deterministic palette-only recolor, explicitly requested by user",
+  "source": "../",
+  "frame_size": [
+    157,
+    209
+  ],
+  "palettes": {
+    "claude": {
+      "name": "Copper and amber",
+      "accent": "#e1a17e",
+      "hue_dark": 21,
+      "hue_light": 36,
+      "chroma_scale": 0.9
+    },
+    "codex": {
+      "name": "Icy cyan and silver",
+      "accent": "#70e5e7",
+      "hue_dark": 193,
+      "hue_light": 184,
+      "chroma_scale": 0.72
+    },
+    "violet": {
+      "name": "Violet",
+      "accent": "#b59aff",
+      "hue_dark": 258,
+      "hue_light": 268,
+      "chroma_scale": 0.75
+    },
+    "mint": {
+      "name": "Mint",
+      "accent": "#6ce4b4",
+      "hue_dark": 157,
+      "hue_light": 151,
+      "chroma_scale": 0.75
+    },
+    "rose": {
+      "name": "Rose",
+      "accent": "#f58dc0",
+      "hue_dark": 326,
+      "hue_light": 335,
+      "chroma_scale": 0.78
+    },
+    "gold": {
+      "name": "Gold",
+      "accent": "#f1c76c",
+      "hue_dark": 38,
+      "hue_light": 46,
+      "chroma_scale": 0.85
+    }
+  },
+  "neutral_rule": "Preserve RGB exactly if chroma <14/255 or saturation <0.18; preserve all alpha",
+  "lighting": "Rec.709 linear-light luminance preserved before 8-bit quantization; gamut handled by reducing chroma",
+  "animations": "Original frame order, dimensions, alpha, duration and loop; lossless WebP",
+  "validation": {
+    "png_files": 288,
+    "webp_files": 144,
+    "decoded_animation_frames": 288,
+    "max_linear_luminance_error": 0.0038738874857476846,
+    "alpha_and_dimensions_exact": true,
+    "neutrals_exact": true,
+    "timing_and_loop_exact": true,
+    "lossless_visible_rgb_exact": true
+  },
+  "source_png_sha256": {
+    "patch\\idle-1.png": "4b068386c674fea2595679bd26a3cc7a7872c8d1336d4accfd05948f99eea85a",
+    "patch\\idle-2.png": "7322a90fba1dd132a05b81f580159a8b6983c5e11560b954adc6f25a4dd435da",
+    "patch\\working-1.png": "b9d49e8bc515c2122191b6678eadbcde276ab6190da53ccdd4fb07ed6bf1f37f",
+    "patch\\working-2.png": "360c7c54926c2b9913a1ce033e24d13748db4fd7667211351f69a8f27cb41ab4",
+    "patch\\attention-1.png": "502b00ddb305896e34a51e451e2201723799e345175ddc241dc6a7a6fb37bdd0",
+    "patch\\attention-2.png": "541a758849fbfb126fbc338ed6f9513955d27600896c0e52f3e0f377b2095a6e",
+    "patch\\success-1.png": "a29b0863cc5daed1a330472949054f76e34a0f8459dc943e3d890750bcb52104",
+    "patch\\success-2.png": "ad208356f07cab3e50ae05698c83d0e17e9e44aaa29b590ea7c6597e3c005edb",
+    "ghost\\idle-1.png": "533f95af8c7f10f373330e0dfbda5ea092a3a5e21d102a58b59c59b7315638fa",
+    "ghost\\idle-2.png": "2ab7658e971a046524c508c8db47da9225f48ad7ec86432abbcae8e7b1e5a048",
+    "ghost\\working-1.png": "7e64102628929dc677769896ff2e0ca44c270ff22aa411d286787fa606a7a88c",
+    "ghost\\working-2.png": "189162d7bba0c7f105d5ebeea39b1a5869cc3265ca3f82b93f44eadb4aabb658",
+    "ghost\\attention-1.png": "e7e9029c459ab3c0699d48cd98445d96191326bf35af0f026a0e012bb9ce272d",
+    "ghost\\attention-2.png": "cf4a261945fa75a584929d670326fe76319b174d2600a5a4d47f1629a0a177a8",
+    "ghost\\success-1.png": "d33d91e9ab2bafbf47f2fb7ea377c8fcb320e429a7d7e1293614e0bc1d107947",
+    "ghost\\success-2.png": "ebbe7e7b2c443dfab5a3cca8e39fb4eb274798272de1c466f2ab9abc02b45136",
+    "atlas\\idle-1.png": "3aac67a107edcd28f809d58809f27d035d0c8bf665efc1e90cd8301363299b35",
+    "atlas\\idle-2.png": "17972fd17580860a953d29c6ef0fcf2b92cb37ecd671f27f2e0261c28a687aab",
+    "atlas\\working-1.png": "02c5be6ea8f02c879253ba05644024a79f5d6c21f96922caafb628800da05f58",
+    "atlas\\working-2.png": "0f78999bac49875ebe217cda5c6d18223cfdb42411bc4d1636c564d6d6724e0f",
+    "atlas\\attention-1.png": "7f0e47a4865a31e2469a75de841f1bed43d7c0a50429efc71c3bb4c977756559",
+    "atlas\\attention-2.png": "0a6027dd77ce46f91270ac1a19bb5f235a8438262ced6f91bbdf0a04637b106b",
+    "atlas\\success-1.png": "0661cc1a702c1bbfa786ff7564304891be2b9008feae2e5c9cf5846a7619f28d",
+    "atlas\\success-2.png": "f8a0cec91d1cb3cfaf59b9a9e2a8384b8555e949c09a568fd2a5d75ead472685",
+    "zip\\idle-1.png": "d3a88cb1fa4c2dd182bddf1a11102b3dbe8f7c6939b7b8061f24b00de720ac4b",
+    "zip\\idle-2.png": "413cedac264823f0fc29338a56987c904aaf25687c0c7e350c96b16a855ac5f1",
+    "zip\\working-1.png": "7299666499d1a4e7a859ea5d6ba8937ad5c8487720fdaa8fc9092902bfe99d4a",
+    "zip\\working-2.png": "e91daf02b20e2e74c075346bb422a7a675782b97e074ab2cabc0c677c1c44f91",
+    "zip\\attention-1.png": "364f5db7f9aa335de0104e6e736dca5a201f33d178f1d53bd94ddb748eee0c98",
+    "zip\\attention-2.png": "5cfe4901929dd6b0de31f045eb442645f220929769d3b8d05fac4e5f9eb002f8",
+    "zip\\success-1.png": "a45801f69045b7e5775d171b853f4a352219c699c000ed9b3e68bbb84d39ac6b",
+    "zip\\success-2.png": "9f85ce39e14f2e91ee583e4bcfb15e7c16f783557236010480a506055bbb4f1e",
+    "nova\\idle-1.png": "b486bd0223c670dde4a03f7dff37336896dca4069bfb74b832d4de868e841517",
+    "nova\\idle-2.png": "15cab11a587ebed6a36441a4675932c1023d4ae89932cb49dfbd78f35cda08f6",
+    "nova\\working-1.png": "f4ca2bf67d56f86e52b3e41885e453cca45fa19c8286e793fd9ec9970ea3db7e",
+    "nova\\working-2.png": "f3f9661e0c4aebcbd4429c307d64c3c05beb21af5ef1f0fd793bf8552bd24ee6",
+    "nova\\attention-1.png": "3d93f510eee55781373b13cab884ebc5b4881d9cb70816b7d5270ee6f5f79e3e",
+    "nova\\attention-2.png": "3e7effaf78b97b343b2a1e9cb96bc9ceb4eee495c00cbbf838c0939aa23c1e17",
+    "nova\\success-1.png": "74a2e9a07a9bc8f38e15860416e5f8d887eb1fc1cf7293e6584b89433b9311cb",
+    "nova\\success-2.png": "605066b32cb006020023776067ee88524f9d7fb95c1f4d303c4f743126f49976",
+    "hex\\idle-1.png": "52c676d2844a17b742c42a2b7c86ece3d8699691ec7502452ffb3746bf902fb6",
+    "hex\\idle-2.png": "f9afbe380120c9d4b134465c4b8b9083013deaebf3432afaa905826d5829be5c",
+    "hex\\working-1.png": "b3a3a27bc66a55be85a3e67e1daf4cbb62605f8aa7d88559f2db6c1a83a33223",
+    "hex\\working-2.png": "098c016f799ce943f8b20ccd031003e1e294e8bddecad39f533837a769b59e52",
+    "hex\\attention-1.png": "11c67e0206ac42e8eeef08f2cbdd907c417756c84039cc3a8c4869572963ec8b",
+    "hex\\attention-2.png": "013efae280999cea0eb6a54fd83232acec9f952a89b3df217aebd39bf88133e3",
+    "hex\\success-1.png": "235230a62603c0b33a6e369194cfae7f69ed19e447d298ecc787b097c8813739",
+    "hex\\success-2.png": "db19211317ba4a4870125e7f91e9ed1f2d8c6d8bc2cad582d0182882d3d83c6f"
+  }
+}

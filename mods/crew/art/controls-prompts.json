@@ -1,0 +1,14 @@
+{
+  "mode": "built-in image_gen",
+  "generated": "2026-11-06",
+  "assets": [
+    {
+      "file": "control-keycap.png",
+      "prompt": "Use case: stylized-concept. Asset type: a single production GUI button keycap, actual component artwork for a cyberpunk developer app. Square composition, straight-on orthographic front view, no perspective. A dark gunmetal machined square keycap with clipped beveled corners, fine silver brushed edge, very thin cyan illuminated inset rim, two tiny precision fasteners. Recessed center is completely blank near-black navy (#0b101b), matte and calm, occupying 75 percent of width and height so a native icon can be placed over it. Outer metal frame slender and crisp. Delicate dimensional machining texture, sophisticated high quality game UI component. Cyan (#65e6dd) primary, restrained faint violet accent at lower right. Object nearly fills the square canvas with 3 percent clear margin. Transparent alpha background outside the clipped outline, including all four corners. No floor, no environment, no drop shadow outside, no checkerboard drawn, no text, no symbols, no logo, no icon, no watermark, no scene."
+    },
+    {
+      "file": "sidebar-rail.png",
+      "prompt": "Use case: stylized-concept. Asset type: one production vertical sidebar border rail, actual component artwork for a cyberpunk desktop app. Tall vertical canvas aspect ratio 1:3. Straight-on orthographic front view, no perspective. A single very slim industrial gunmetal frame rail centered vertically, occupying about 70 percent of canvas width and 97 percent height; continuous narrow finely machined silver-gray rim, inset thin cyan light strip, elegant mechanical fittings, tiny recessed fasteners at top and bottom, subtle bevels and fine grooves. Dark navy steel with pale brushed highlights, sophisticated restrained cyan illumination (#65e6dd), small subtle violet indicator near bottom. Angular chamfered top and bottom ends. Consistent width, orderly engineering, no protruding cables or objects. Transparent alpha background outside rail silhouette including corners. No environment, no character, no scenery, no floor, no text, no symbols, no logo, no watermark, no drop shadow outside silhouette, no checkerboard drawn. This IS the UI border, not a picture inside a panel."
+    }
+  ]
+}

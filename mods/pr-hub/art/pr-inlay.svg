@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="130" viewBox="0 0 600 130" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="wash" x2="1" y2=".5"><stop stop-color="#3a9dba" stop-opacity=".075"/><stop offset=".5" stop-color="#141d31" stop-opacity="0"/><stop offset="1" stop-color="#9360c6" stop-opacity=".07"/></linearGradient>
+    <linearGradient id="line"><stop stop-color="#62dbd8" stop-opacity="0"/><stop offset=".75" stop-color="#62dbd8" stop-opacity=".18"/><stop offset="1" stop-color="#62dbd8" stop-opacity="0"/></linearGradient>
+  </defs>
+  <!-- Transparent etching only: no rectangular wash or oversized face over
+       the original metal component. Every trace finishes inside this inset. -->
+  <g fill="none" stroke-width=".8">
+    <path d="M90 116H418L514 20H565" stroke="url(#line)"/>
+    <path d="M460 116 556 20H575M468 116 564 20H580" stroke="#a887da" opacity=".09"/>
+    <path d="M14 20V82L30 98H100" stroke="#6eb9ce" opacity=".07"/>
+  </g>
+  <g fill="#75baca" opacity=".15"><path d="M580 35h10v1h-10Zm0 4h10v1h-10Zm0 4h10v1h-10Z"/></g>
+</svg>

@@ -1,0 +1,281 @@
+{
+  "version": 1,
+  "providerAgnostic": true,
+  "providers": "Display provider name separately; never recolor characters based on provider.",
+  "frameSize": [
+    157,
+    209
+  ],
+  "characters": [
+    {
+      "id": "patch",
+      "name": "PATCH",
+      "role": "Debugger",
+      "palette": "Lime and cream",
+      "personality": "Curious, resourceful repair specialist",
+      "animations": {
+        "idle": {
+          "frames": [
+            "characters/patch/idle-1.png",
+            "characters/patch/idle-2.png"
+          ],
+          "frameDurationMs": 500,
+          "loop": true,
+          "preview": "characters/patch/idle.webp"
+        },
+        "working": {
+          "frames": [
+            "characters/patch/working-1.png",
+            "characters/patch/working-2.png"
+          ],
+          "frameDurationMs": 300,
+          "loop": true,
+          "preview": "characters/patch/working.webp"
+        },
+        "attention": {
+          "frames": [
+            "characters/patch/attention-1.png",
+            "characters/patch/attention-2.png"
+          ],
+          "frameDurationMs": 300,
+          "loop": true,
+          "preview": "characters/patch/attention.webp"
+        },
+        "success": {
+          "frames": [
+            "characters/patch/success-1.png",
+            "characters/patch/success-2.png"
+          ],
+          "frameDurationMs": 300,
+          "loop": true,
+          "preview": "characters/patch/success.webp"
+        }
+      }
+    },
+    {
+      "id": "ghost",
+      "name": "GHOST",
+      "role": "Security",
+      "palette": "Violet and charcoal",
+      "personality": "Quiet, watchful guardian",
+      "animations": {
+        "idle": {
+          "frames": [
+            "characters/ghost/idle-1.png",
+            "characters/ghost/idle-2.png"
+          ],
+          "frameDurationMs": 500,
+          "loop": true,
+          "preview": "characters/ghost/idle.webp"
+        },
+        "working": {
+          "frames": [
+            "characters/ghost/working-1.png",
+            "characters/ghost/working-2.png"
+          ],
+          "frameDurationMs": 300,
+          "loop": true,
+          "preview": "characters/ghost/working.webp"
+        },
+        "attention": {
+          "frames": [
+            "characters/ghost/attention-1.png",
+            "characters/ghost/attention-2.png"
+          ],
+          "frameDurationMs": 300,
+          "loop": true,
+          "preview": "characters/ghost/attention.webp"
+        },
+        "success": {
+          "frames": [
+            "characters/ghost/success-1.png",
+            "characters/ghost/success-2.png"
+          ],
+          "frameDurationMs": 300,
+          "loop": true,
+          "preview": "characters/ghost/success.webp"
+        }
+      }
+    },
+    {
+      "id": "atlas",
+      "name": "ATLAS",
+      "role": "Architect",
+      "palette": "Cobalt and steel",
+      "personality": "Patient, methodical builder",
+      "animations": {
+        "idle": {
+          "frames": [
+            "characters/atlas/idle-1.png",
+            "characters/atlas/idle-2.png"
+          ],
+          "frameDurationMs": 500,
+          "loop": true,
+          "preview": "characters/atlas/idle.webp"
+        },
+        "working": {
+          "frames": [
+            "characters/atlas/working-1.png",
+            "characters/atlas/working-2.png"
+          ],
+          "frameDurationMs": 300,
+          "loop": true,
+          "preview": "characters/atlas/working.webp"
+        },
+        "attention": {
+          "frames": [
+            "characters/atlas/attention-1.png",
+            "characters/atlas/attention-2.png"
+          ],
+          "frameDurationMs": 300,
+          "loop": true,
+          "preview": "characters/atlas/attention.webp"
+        },
+        "success": {
+          "frames": [
+            "characters/atlas/success-1.png",
+            "characters/atlas/success-2.png"
+          ],
+          "frameDurationMs": 300,
+          "loop": true,
+          "preview": "characters/atlas/success.webp"
+        }
+      }
+    },
+    {
+      "id": "zip",
+      "name": "ZIP",
+      "role": "Speed",
+      "palette": "Orange and graphite",
+      "personality": "Restless, enthusiastic optimizer",
+      "animations": {
+        "idle": {
+          "frames": [
+            "characters/zip/idle-1.png",
+            "characters/zip/idle-2.png"
+          ],
+          "frameDurationMs": 500,
+          "loop": true,
+          "preview": "characters/zip/idle.webp"
+        },
+        "working": {
+          "frames": [
+            "characters/zip/working-1.png",
+            "characters/zip/working-2.png"
+          ],
+          "frameDurationMs": 300,
+          "loop": true,
+          "preview": "characters/zip/working.webp"
+        },
+        "attention": {
+          "frames": [
+            "characters/zip/attention-1.png",
+            "characters/zip/attention-2.png"
+          ],
+          "frameDurationMs": 300,
+          "loop": true,
+          "preview": "characters/zip/attention.webp"
+        },
+        "success": {
+          "frames": [
+            "characters/zip/success-1.png",
+            "characters/zip/success-2.png"
+          ],
+          "frameDurationMs": 300,
+          "loop": true,
+          "preview": "characters/zip/success.webp"
+        }
+      }
+    },
+    {
+      "id": "nova",
+      "name": "NOVA",
+      "role": "UI Designer",
+      "palette": "Pink and pearl",
+      "personality": "Expressive visual perfectionist",
+      "animations": {
+        "idle": {
+          "frames": [
+            "characters/nova/idle-1.png",
+            "characters/nova/idle-2.png"
+          ],
+          "frameDurationMs": 500,
+          "loop": true,
+          "preview": "characters/nova/idle.webp"
+        },
+        "working": {
+          "frames": [
+            "characters/nova/working-1.png",
+            "characters/nova/working-2.png"
+          ],
+          "frameDurationMs": 300,
+          "loop": true,
+          "preview": "characters/nova/working.webp"
+        },
+        "attention": {
+          "frames": [
+            "characters/nova/attention-1.png",
+            "characters/nova/attention-2.png"
+          ],
+          "frameDurationMs": 300,
+          "loop": true,
+          "preview": "characters/nova/attention.webp"
+        },
+        "success": {
+          "frames": [
+            "characters/nova/success-1.png",
+            "characters/nova/success-2.png"
+          ],
+          "frameDurationMs": 300,
+          "loop": true,
+          "preview": "characters/nova/success.webp"
+        }
+      }
+    },
+    {
+      "id": "hex",
+      "name": "HEX",
+      "role": "Tester",
+      "palette": "Teal and brass",
+      "personality": "Meticulous, inquisitive inspector",
+      "animations": {
+        "idle": {
+          "frames": [
+            "characters/hex/idle-1.png",
+            "characters/hex/idle-2.png"
+          ],
+          "frameDurationMs": 500,
+          "loop": true,
+          "preview": "characters/hex/idle.webp"
+        },
+        "working": {
+          "frames": [
+            "characters/hex/working-1.png",
+            "characters/hex/working-2.png"
+          ],
+          "frameDurationMs": 300,
+          "loop": true,
+          "preview": "characters/hex/working.webp"
+        },
+        "attention": {
+          "frames": [
+            "characters/hex/attention-1.png",
+            "characters/hex/attention-2.png"
+          ],
+          "frameDurationMs": 300,
+          "loop": true,
+          "preview": "characters/hex/attention.webp"
+        },
+        "success": {
+          "frames": [
+            "characters/hex/success-1.png",
+            "characters/hex/success-2.png"
+          ],
+          "frameDurationMs": 300,
+          "loop": true,
+          "preview": "characters/hex/success.webp"
+        }
+      }
+    }
+  ]
+}

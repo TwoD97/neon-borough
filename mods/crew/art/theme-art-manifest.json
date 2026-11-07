@@ -1,0 +1,644 @@
+{
+  "method": "Explicit face geometry + connected dark navy color mask; inward feather only",
+  "mode": "User-authorized deterministic theme recoloring",
+  "assets": [
+    {
+      "source": "mods/crew/art/provider-frame-claude.png",
+      "light": "mods/crew/art/provider-frame-claude-light.png",
+      "size": [
+        1942,
+        809
+      ],
+      "source_sha256": "170f34120f3332c3a17f654513565bb681f0befeff24f3af7d3b85271f1d0ac6",
+      "variant_sha256": "9aabea97c04d889a82e670e281fdb2a2baae07e77318dce39ec3fb4265779d33",
+      "changed_pixels": 789749,
+      "region_pixels": [
+        654989,
+        134760
+      ],
+      "alpha_exact": true,
+      "outside_mask_exact": true,
+      "bright_accents_exact": true,
+      "geometry": {
+        "paper": [
+          236,
+          230,
+          222
+        ],
+        "regions": [
+          {
+            "points": [
+              [
+                0.28,
+                0.15
+              ],
+              [
+                0.901,
+                0.15
+              ],
+              [
+                0.937,
+                0.23
+              ],
+              [
+                0.937,
+                0.75
+              ],
+              [
+                0.901,
+                0.83
+              ],
+              [
+                0.28,
+                0.83
+              ]
+            ],
+            "seed": [
+              0.6,
+              0.5
+            ],
+            "ellipse": false,
+            "allow_warm_dark": false,
+            "dark_limit": 43
+          },
+          {
+            "points": [
+              [
+                0.059,
+                0.224
+              ],
+              [
+                0.277,
+                0.752
+              ]
+            ],
+            "seed": [
+              0.165,
+              0.49
+            ],
+            "ellipse": true,
+            "allow_warm_dark": false,
+            "dark_limit": 43
+          }
+        ]
+      }
+    },
+    {
+      "source": "mods/crew/art/provider-frame-codex.png",
+      "light": "mods/crew/art/provider-frame-codex-light.png",
+      "size": [
+        1942,
+        809
+      ],
+      "source_sha256": "367bc7e5abbced42217f28b937eb8098d2f51db56731e32534fc382a8587c05b",
+      "variant_sha256": "93b250f9d31a2fd2728525c0c969e2ee676d008b4789e8916e5d8c602576879b",
+      "changed_pixels": 753601,
+      "region_pixels": [
+        633631,
+        119970
+      ],
+      "alpha_exact": true,
+      "outside_mask_exact": true,
+      "bright_accents_exact": true,
+      "geometry": {
+        "paper": [
+          224,
+          234,
+          238
+        ],
+        "regions": [
+          {
+            "points": [
+              [
+                0.274,
+                0.173
+              ],
+              [
+                0.895,
+                0.173
+              ],
+              [
+                0.937,
+                0.275
+              ],
+              [
+                0.937,
+                0.73
+              ],
+              [
+                0.895,
+                0.832
+              ],
+              [
+                0.316,
+                0.832
+              ],
+              [
+                0.274,
+                0.73
+              ]
+            ],
+            "seed": [
+              0.6,
+              0.5
+            ],
+            "ellipse": false,
+            "allow_warm_dark": false,
+            "dark_limit": 43
+          },
+          {
+            "points": [
+              [
+                0.065,
+                0.25
+              ],
+              [
+                0.269,
+                0.745
+              ]
+            ],
+            "seed": [
+              0.167,
+              0.5
+            ],
+            "ellipse": true,
+            "allow_warm_dark": false,
+            "dark_limit": 43
+          }
+        ]
+      }
+    },
+    {
+      "source": "mods/crew/art/crew-component.png",
+      "light": "mods/crew/art/crew-component-light.png",
+      "size": [
+        2172,
+        724
+      ],
+      "source_sha256": "cdfb57b53b29c2292ebf990bb228cf7af11cbb3cc86dab2458f04aee8a486d0e",
+      "variant_sha256": "82bd62de3d4cf934f7098da4d0e026588851864c58be21201ddcaa60393ac6da",
+      "changed_pixels": 728083,
+      "region_pixels": [
+        645460,
+        82623
+      ],
+      "alpha_exact": true,
+      "outside_mask_exact": true,
+      "bright_accents_exact": true,
+      "geometry": {
+        "paper": [
+          227,
+          233,
+          239
+        ],
+        "regions": [
+          {
+            "points": [
+              [
+                0.246,
+                0.218
+              ],
+              [
+                0.947,
+                0.218
+              ],
+              [
+                0.978,
+                0.282
+              ],
+              [
+                0.978,
+                0.702
+              ],
+              [
+                0.947,
+                0.791
+              ],
+              [
+                0.255,
+                0.791
+              ],
+              [
+                0.246,
+                0.755
+              ]
+            ],
+            "seed": [
+              0.6,
+              0.5
+            ],
+            "ellipse": false,
+            "allow_warm_dark": false,
+            "dark_limit": 43
+          },
+          {
+            "points": [
+              [
+                0.055,
+                0.285
+              ],
+              [
+                0.212,
+                0.75
+              ]
+            ],
+            "seed": [
+              0.133,
+              0.51
+            ],
+            "ellipse": true,
+            "allow_warm_dark": false,
+            "dark_limit": 90
+          }
+        ]
+      }
+    },
+    {
+      "source": "mods/pr-hub/art/pr-component.png",
+      "light": "mods/pr-hub/art/pr-component-light.png",
+      "size": [
+        2157,
+        729
+      ],
+      "source_sha256": "4fd8fe3b9180ae181e668e1d46c6741c357fefb43f836eae2c1deabe52279a26",
+      "variant_sha256": "9f3136aad79c646fddae647f30c51be12bc40a5d9f464701c461f45f831180d6",
+      "changed_pixels": 1105593,
+      "region_pixels": [
+        1063425,
+        13742,
+        14476,
+        13950
+      ],
+      "alpha_exact": true,
+      "outside_mask_exact": true,
+      "bright_accents_exact": true,
+      "geometry": {
+        "paper": [
+          227,
+          234,
+          238
+        ],
+        "regions": [
+          {
+            "points": [
+              [
+                0.027,
+                0.33
+              ],
+              [
+                0.145,
+                0.1
+              ],
+              [
+                0.94,
+                0.1
+              ],
+              [
+                0.978,
+                0.21
+              ],
+              [
+                0.978,
+                0.67
+              ],
+              [
+                0.9,
+                0.884
+              ],
+              [
+                0.06,
+                0.884
+              ],
+              [
+                0.027,
+                0.79
+              ]
+            ],
+            "seed": [
+              0.5,
+              0.5
+            ],
+            "ellipse": false,
+            "allow_warm_dark": false,
+            "dark_limit": 43
+          },
+          {
+            "points": [
+              [
+                0.182,
+                0.842
+              ],
+              [
+                0.34,
+                0.842
+              ],
+              [
+                0.34,
+                0.927
+              ],
+              [
+                0.182,
+                0.927
+              ]
+            ],
+            "seed": [
+              0.25,
+              0.878
+            ],
+            "ellipse": false,
+            "allow_warm_dark": false,
+            "dark_limit": 43
+          },
+          {
+            "points": [
+              [
+                0.36,
+                0.842
+              ],
+              [
+                0.525,
+                0.842
+              ],
+              [
+                0.525,
+                0.927
+              ],
+              [
+                0.36,
+                0.927
+              ]
+            ],
+            "seed": [
+              0.44,
+              0.878
+            ],
+            "ellipse": false,
+            "allow_warm_dark": true,
+            "dark_limit": 43
+          },
+          {
+            "points": [
+              [
+                0.543,
+                0.842
+              ],
+              [
+                0.705,
+                0.842
+              ],
+              [
+                0.705,
+                0.927
+              ],
+              [
+                0.543,
+                0.927
+              ]
+            ],
+            "seed": [
+              0.62,
+              0.878
+            ],
+            "ellipse": false,
+            "allow_warm_dark": false,
+            "dark_limit": 43
+          }
+        ]
+      }
+    },
+    {
+      "source": "mods/my-spaces/art/space-frame.png",
+      "light": "mods/my-spaces/art/space-frame-light.png",
+      "size": [
+        2172,
+        724
+      ],
+      "source_sha256": "0d69d69ded79d0216d8a1d7c128ad0c730d5eb4c53bee65a2f5f5db55f90178c",
+      "variant_sha256": "9704c4ec125bbc0bc1e4794cb5ee81d83e04df54777583af85b4844e78c5a661",
+      "changed_pixels": 541602,
+      "region_pixels": [
+        464575,
+        77027
+      ],
+      "alpha_exact": true,
+      "outside_mask_exact": true,
+      "bright_accents_exact": true,
+      "geometry": {
+        "paper": [
+          224,
+          234,
+          238
+        ],
+        "regions": [
+          {
+            "points": [
+              [
+                0.225,
+                0.285
+              ],
+              [
+                0.917,
+                0.285
+              ],
+              [
+                0.945,
+                0.365
+              ],
+              [
+                0.945,
+                0.622
+              ],
+              [
+                0.917,
+                0.703
+              ],
+              [
+                0.225,
+                0.694
+              ],
+              [
+                0.204,
+                0.622
+              ],
+              [
+                0.204,
+                0.355
+              ]
+            ],
+            "seed": [
+              0.6,
+              0.49
+            ],
+            "ellipse": false,
+            "allow_warm_dark": false,
+            "dark_limit": 43
+          },
+          {
+            "points": [
+              [
+                0.08,
+                0.28
+              ],
+              [
+                0.152,
+                0.28
+              ],
+              [
+                0.189,
+                0.388
+              ],
+              [
+                0.189,
+                0.59
+              ],
+              [
+                0.152,
+                0.702
+              ],
+              [
+                0.08,
+                0.702
+              ],
+              [
+                0.043,
+                0.59
+              ],
+              [
+                0.043,
+                0.388
+              ]
+            ],
+            "seed": [
+              0.115,
+              0.49
+            ],
+            "ellipse": false,
+            "allow_warm_dark": false,
+            "dark_limit": 43
+          }
+        ]
+      }
+    },
+    {
+      "source": "mods/my-spaces/art/worktree-frame.png",
+      "light": "mods/my-spaces/art/worktree-frame-light.png",
+      "size": [
+        2172,
+        724
+      ],
+      "source_sha256": "778c066af33079a4d82aa92296e409340c8364377e3aabbf4dcfcd6dfd8bd79f",
+      "variant_sha256": "632b578f88c164622e8e74e06e11f3b2906d4acd476217a3054e7302fff0449e",
+      "changed_pixels": 561303,
+      "region_pixels": [
+        476316,
+        84987
+      ],
+      "alpha_exact": true,
+      "outside_mask_exact": true,
+      "bright_accents_exact": true,
+      "geometry": {
+        "paper": [
+          232,
+          229,
+          239
+        ],
+        "regions": [
+          {
+            "points": [
+              [
+                0.289,
+                0.257
+              ],
+              [
+                0.931,
+                0.257
+              ],
+              [
+                0.956,
+                0.337
+              ],
+              [
+                0.956,
+                0.64
+              ],
+              [
+                0.931,
+                0.704
+              ],
+              [
+                0.274,
+                0.704
+              ],
+              [
+                0.238,
+                0.611
+              ],
+              [
+                0.238,
+                0.441
+              ],
+              [
+                0.252,
+                0.42
+              ],
+              [
+                0.252,
+                0.338
+              ]
+            ],
+            "seed": [
+              0.6,
+              0.49
+            ],
+            "ellipse": false,
+            "allow_warm_dark": false,
+            "dark_limit": 43
+          },
+          {
+            "points": [
+              [
+                0.097,
+                0.26
+              ],
+              [
+                0.185,
+                0.26
+              ],
+              [
+                0.211,
+                0.335
+              ],
+              [
+                0.211,
+                0.619
+              ],
+              [
+                0.184,
+                0.701
+              ],
+              [
+                0.097,
+                0.701
+              ],
+              [
+                0.073,
+                0.619
+              ],
+              [
+                0.073,
+                0.335
+              ]
+            ],
+            "seed": [
+              0.14,
+              0.49
+            ],
+            "ellipse": false,
+            "allow_warm_dark": false,
+            "dark_limit": 43
+          }
+        ]
+      }
+    }
+  ]
+}

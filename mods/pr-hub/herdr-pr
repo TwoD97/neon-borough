@@ -1,0 +1,790 @@
+#!/usr/bin/env python3
+"""herdr-pr: schedule GitHub pull request merges. A scheduler machine runs them every minute.
+
+  herdr-pr schedule <pr> --at <time> [--method squash|merge|rebase] [--any-head] [--note text]
+  herdr-pr list [--json] [--all]        scheduled merges (--all: also finished ones)
+  herdr-pr cancel <id|pr>
+  herdr-pr run-due                      what the timer runs every minute
+  herdr-pr setup                        make this machine a scheduler: marker + timer
+                                        (cron on Linux/macOS, Task Scheduler on Windows)
+  herdr-pr remove                       stop being a scheduler (scheduled merges are kept)
+  herdr-pr status [--json]              is this machine a scheduler, is its timer set up
+  herdr-pr outbox [--json]              requests queued here for a scheduler
+  herdr-pr outbox-done <id>             drop one queued request (the PR panel does this)
+  herdr-pr inbox                        JSON: pending asks, secret requests and queued requests (panels poll this)
+
+Asking the person to merge (any machine, no scheduler needed; for agents without merge rights):
+  herdr-pr ask <pr> [--risk low|medium|high|critical] [--area design,ui,pipeline,infra,data,security,deps,docs]
+           [--testing "manual test steps"] [--method squash] [--note why] [--wait [--timeout 30m]]
+                                        shows Merge / Decline in Herdr's PR panel; the person's
+                                        click merges with their own gh. --wait blocks until then
+                                        (exit 0 merged, 1 declined or failed, 2 no answer yet)
+  herdr-pr ask-status <id>              merged | declined | failed | pending
+  herdr-pr asks [--json] [--all]        open asks on this machine (the PR panel reads these)
+  herdr-pr answer <id> <state>          the PR panel records the person's answer
+
+Asking the person for a secret (an API key, a password) without ever seeing it:
+  herdr-pr secret <file> <KEY> [--note why] [--wait [--timeout 30m]]
+                                        Herdr's Files panel shows a hidden input; the person's value
+                                        is written as KEY=value into that dotenv-style file (replaced
+                                        if KEY is there, else appended). --wait: exit 0 filled, 1 declined
+  herdr-pr secret-status <id>           filled | declined | pending
+
+<pr>   a PR URL, or owner/repo#123
+<time> "2026-11-07 09:00", "09:00" (next time it is 09:00), "tomorrow 09:00",
+       "in 2h", "+90m", "in 1h30m", an ISO time with offset, or @<unix seconds>.
+       Times without an offset are in this machine's local time (HERDR_PR_TZ to change).
+
+At the time, the merge only happens if the PR is still open, not a draft, has no conflicts
+and all its checks passed. If checks are still running it waits up to an hour. Unless
+--any-head is given, it also refuses when commits were pushed after scheduling.
+
+A machine is a scheduler when ~/.herdr/pr-schedule.server exists (`setup` makes it). On any
+other machine, schedule and cancel go to ~/.herdr/pr-outbox/ and the Herdr app's PR panel
+hands them to your default scheduler within a minute while Herdr is open.
+On Windows the timer only runs while you are logged in. State: ~/.herdr/pr-schedule.json,
+log next to it.
+"""
+import importlib, json, os, re, sys, time
+from datetime import datetime, timedelta
+
+
+class _Lazy:
+    """Imports a module the first time it is used: most calls (asks, secrets, inbox) never need these."""
+    def __init__(self, name):
+        self._name, self._mod = name, None
+
+    def __getattr__(self, attr):
+        if self._mod is None:
+            self._mod = importlib.import_module(self._name)
+        return getattr(self._mod, attr)
+
+
+platform, shutil, subprocess, uuid = (_Lazy(n) for n in ("platform", "shutil", "subprocess", "uuid"))
+
+try:
+    import fcntl
+except ImportError:  # Windows
+    fcntl = None
+    import msvcrt
+
+VERSION = 6
+WINDOWS = os.name == "nt"
+HOME = os.path.expanduser("~/.herdr")
+STORE = os.path.join(HOME, "pr-schedule.json")
+LOCK = STORE + ".lock"
+LOG = os.path.join(HOME, "pr-schedule.log")
+MARKER = os.path.join(HOME, "pr-schedule.server")
+OUTBOX = os.path.join(HOME, "pr-outbox")
+TASK = "herdr-pr run-due"  # the Windows Task Scheduler task
+WAIT_CHECKS = 3600  # seconds to wait for running checks after the time
+KEEP_DONE = 7 * 86400
+METHODS = ("squash", "merge", "rebase")
+
+
+def _zone():
+    name = os.environ.get("HERDR_PR_TZ")
+    if not name:
+        return datetime.now().astimezone().tzinfo
+    try:
+        from zoneinfo import ZoneInfo
+        return ZoneInfo(name)
+    except Exception:  # no tz database (Windows without the tzdata package): use local time
+        return datetime.now().astimezone().tzinfo
+
+
+_TZ = None
+
+
+def tz():
+    """The schedule's time zone, looked up on first use (zoneinfo is the slowest import here)."""
+    global _TZ
+    if _TZ is None:
+        _TZ = _zone()
+    return _TZ
+
+
+def is_server():
+    return os.path.exists(MARKER)
+
+
+def queue(op, **kw):
+    """Not a scheduler machine: leave the request for the Herdr app to forward."""
+    os.makedirs(OUTBOX, exist_ok=True)
+    item = {"op": op, "id": uuid.uuid4().hex[:8], "created": time.time(), **kw}
+    tmp = os.path.join(OUTBOX, f".{item['id']}.tmp")
+    with open(tmp, "w") as f:
+        json.dump(item, f)
+    os.replace(tmp, os.path.join(OUTBOX, f"{item['id']}.json"))
+    return item
+
+
+def die(msg):
+    print(f"herdr-pr: {msg}", file=sys.stderr)
+    sys.exit(1)
+
+
+def log(msg):
+    os.makedirs(HOME, exist_ok=True)
+    with open(LOG, "a") as f:
+        f.write(f"{datetime.now(tz()):%Y-%m-%d %H:%M:%S} {msg}\n")
+
+
+class Store:
+    def __enter__(self):
+        os.makedirs(HOME, exist_ok=True)
+        self.lock = open(LOCK, "a+")
+        if fcntl:
+            fcntl.flock(self.lock, fcntl.LOCK_EX)
+        else:
+            self.lock.seek(0)
+            while True:
+                try:
+                    msvcrt.locking(self.lock.fileno(), msvcrt.LK_LOCK, 1)
+                    break
+                except OSError:  # LK_LOCK gives up after ~10 s; keep waiting
+                    pass
+        try:
+            with open(STORE) as f:
+                self.items = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            self.items = []
+        return self
+
+    def save(self):
+        now = time.time()
+        self.items = [i for i in self.items if i["state"] in ("scheduled", "waiting") or now - i.get("updated", now) < KEEP_DONE]
+        tmp = STORE + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump(self.items, f, indent=1)
+        os.replace(tmp, STORE)
+
+    def __exit__(self, *a):
+        if fcntl:
+            fcntl.flock(self.lock, fcntl.LOCK_UN)
+        else:
+            self.lock.seek(0)
+            msvcrt.locking(self.lock.fileno(), msvcrt.LK_UNLCK, 1)
+        self.lock.close()
+
+
+def gh_exe():
+    """gh on PATH, else where its Windows installer puts it (a timer may start with a short PATH)."""
+    if WINDOWS:
+        # Only a real gh.exe from PATH: shutil.which would also try the current folder and
+        # PATHEXT types such as .JS (a gh.js beside the caller would be "found").
+        for d in os.environ.get("PATH", "").split(os.pathsep):
+            exe = os.path.join(d.strip('"'), "gh.exe")
+            if d and os.path.isfile(exe):
+                return exe
+    else:
+        found = shutil.which("gh")
+        if found:
+            return found
+    for p in (r"C:\Program Files\GitHub CLI\gh.exe", os.path.expanduser(r"~\AppData\Local\Programs\GitHub CLI\gh.exe")):
+        if WINDOWS and os.path.exists(p):
+            return p
+    return None
+
+
+def gh(*args):
+    r = subprocess.run([gh_exe() or "gh", *args], capture_output=True, text=True, timeout=120)
+    if r.returncode != 0:
+        raise RuntimeError((r.stderr or r.stdout).strip() or f"gh {args[0]} failed")
+    return r.stdout
+
+
+def pr_url(ref):
+    m = re.match(r"^https://github\.com/([^/\s]+)/([^/\s]+)/pull/(\d+)", ref)
+    if m:
+        return f"https://github.com/{m[1]}/{m[2]}/pull/{m[3]}", f"{m[1]}/{m[2]}", int(m[3])
+    m = re.match(r"^([\w.-]+)/([\w.-]+)#(\d+)$", ref)
+    if m:
+        return f"https://github.com/{m[1]}/{m[2]}/pull/{m[3]}", f"{m[1]}/{m[2]}", int(m[3])
+    die(f"not a PR: {ref} (use a URL or owner/repo#123)")
+
+
+def parse_time(text):
+    s = text.strip().lower()
+    now = datetime.now(tz())
+    if s.startswith("@"):
+        return float(s[1:])
+    m = re.fullmatch(r"(?:in\s*|\+)((?:\d+\s*[dhm]\s*)+)", s)
+    if m:
+        delta = timedelta()
+        for n, u in re.findall(r"(\d+)\s*([dhm])", m[1]):
+            delta += {"d": timedelta(days=int(n)), "h": timedelta(hours=int(n)), "m": timedelta(minutes=int(n))}[u]
+        return (now + delta).timestamp()
+    m = re.fullmatch(r"(today|tomorrow)?\s*(\d{1,2})[:.](\d{2})", s)
+    if m:
+        t = now.replace(hour=int(m[2]), minute=int(m[3]), second=0, microsecond=0)
+        if m[1] == "tomorrow":
+            t += timedelta(days=1)
+        elif m[1] is None and t <= now:
+            t += timedelta(days=1)
+        return t.timestamp()
+    raw = text.strip()
+    if re.match(r"\d{4}-\d\d-\d\d \d", raw):
+        raw = raw.replace(" ", "T", 1)
+    try:
+        t = datetime.fromisoformat(raw)
+    except ValueError:
+        die(f"can't read the time: {text}")
+    if t.tzinfo is None:
+        t = t.replace(tzinfo=tz())
+    return t.timestamp()
+
+
+def show(i):
+    when = datetime.fromtimestamp(i["at"], tz()).strftime("%a %d %b %H:%M")
+    extra = f" - {i['message']}" if i.get("message") else ""
+    return f"{i['id']}  {i['state']:<9} {when}  {i['repo']}#{i['number']} ({i['method']})  {i.get('title', '')}{extra}"
+
+
+def me():
+    user = os.environ.get("USER") or os.environ.get("USERNAME") or "?"
+    return f"{user}@{platform.node()}"
+
+
+def cmd_schedule(args):
+    if not args or args[0].startswith("-"):
+        die("usage: herdr-pr schedule <pr> --at <time> [--method squash] [--any-head] [--note text]")
+    url, repo, number = pr_url(args[0])
+    at, method, any_head, note = None, "squash", False, ""
+    by = os.environ.get("HERDR_PR_BY") or me()
+    rest = args[1:]
+    while rest:
+        a = rest.pop(0)
+        if a == "--at" and rest: at = parse_time(rest.pop(0))
+        elif a == "--method" and rest: method = rest.pop(0)
+        elif a == "--any-head": any_head = True
+        elif a == "--note" and rest: note = rest.pop(0)
+        elif a == "--by" and rest: by = rest.pop(0)
+        elif a == "--json": pass
+        else: die(f"unknown option {a}")
+    if at is None: die("--at <time> is required")
+    if method not in METHODS: die(f"--method must be one of {', '.join(METHODS)}")
+    if at < time.time() - 60: die("that time has passed")
+    if not is_server():
+        queue("schedule", url=url, at=at, method=method, any_head=any_head, note=note, by=by)
+        when = datetime.fromtimestamp(at, tz()).strftime("%a %d %b %H:%M")
+        print(f"queued: {repo}#{number} merge ({method}) at {when}. Herdr hands it to your scheduler; "
+              "it shows in Herdr's PR panel. The PR is checked again at that time.")
+        return
+    try:
+        pr = json.loads(gh("pr", "view", url, "--json", "state,title,headRefOid,isDraft"))
+    except RuntimeError as e:
+        die(str(e))
+    if pr["state"] != "OPEN": die(f"{repo}#{number} is {pr['state'].lower()}")
+    item = {"id": uuid.uuid4().hex[:8], "url": url, "repo": repo, "number": number, "title": pr["title"], "at": at,
+            "method": method, "head": None if any_head else pr["headRefOid"], "note": note, "by": by,
+            "created": time.time(), "updated": time.time(), "state": "scheduled",
+            "message": "still a draft: mark it ready before then" if pr["isDraft"] else ""}
+    with Store() as st:
+        st.items = [i for i in st.items if not (i["url"] == url and i["state"] in ("scheduled", "waiting"))]
+        st.items.append(item)
+        st.save()
+    log(f"scheduled {repo}#{number} for {datetime.fromtimestamp(at, tz()):%Y-%m-%d %H:%M} by {by}")
+    print(json.dumps(item) if "--json" in args else f"scheduled: {show(item)}")
+
+
+def read_outbox():
+    try:
+        names = sorted(n for n in os.listdir(OUTBOX) if n.endswith(".json"))
+    except FileNotFoundError:
+        return []
+    out = []
+    for n in names:
+        try:
+            with open(os.path.join(OUTBOX, n)) as f:
+                out.append(json.load(f))
+        except (OSError, json.JSONDecodeError):
+            pass
+    return out
+
+
+def cmd_list(args):
+    if not is_server():
+        waiting = read_outbox()
+        if "--json" in args:
+            print(json.dumps(waiting)); return
+        print("This machine isn't a scheduler; Herdr's PR panel shows the schedule.")
+        for w in waiting:
+            print(f"not yet handed over: {w['op']} {w.get('url') or w.get('ref')}")
+        return
+    with Store() as st:
+        items = st.items if "--all" in args else [i for i in st.items if i["state"] in ("scheduled", "waiting")]
+    items = sorted(items, key=lambda i: i["at"])
+    if "--json" in args:
+        print(json.dumps(items))
+    else:
+        print("\n".join(show(i) for i in items) or "nothing scheduled")
+
+
+def cmd_cancel(args):
+    if not args: die("usage: herdr-pr cancel <id|pr>")
+    ref = args[0]
+    url = pr_url(ref)[0] if "/" in ref else None
+    if not is_server():
+        queue("cancel", ref=url or ref)
+        print(f"queued: cancel {ref}. Herdr hands it to your scheduler.")
+        return
+    n = 0
+    with Store() as st:
+        for i in st.items:
+            if i["state"] in ("scheduled", "waiting") and (i["id"] == ref or i["url"] == url):
+                i["state"], i["message"], i["updated"] = "cancelled", "cancelled", time.time()
+                n += 1
+        st.save()
+    if not n: die(f"nothing scheduled matches {ref}")
+    log(f"cancelled {ref}")
+    print(f"cancelled {n}")
+
+
+def checks_state(rollup):
+    pending = failed = 0
+    for c in rollup or []:
+        if c.get("__typename") == "StatusContext":
+            s = c.get("state")
+            if s in ("PENDING", "EXPECTED"): pending += 1
+            elif s in ("FAILURE", "ERROR"): failed += 1
+        else:
+            if c.get("status") != "COMPLETED": pending += 1
+            elif c.get("conclusion") not in ("SUCCESS", "NEUTRAL", "SKIPPED"): failed += 1
+    return "failed" if failed else "pending" if pending else "ok"
+
+
+def attempt(i):
+    pr = json.loads(gh("pr", "view", i["url"], "--json", "state,isDraft,headRefOid,mergeable,statusCheckRollup"))
+    if pr["state"] == "MERGED": return "merged", "was already merged"
+    if pr["state"] == "CLOSED": return "failed", "the PR was closed"
+    if pr["isDraft"]: return "failed", "the PR is still a draft"
+    if i.get("head") and pr["headRefOid"] != i["head"]: return "failed", "commits were pushed after it was scheduled"
+    if pr["mergeable"] == "CONFLICTING": return "failed", "merge conflict"
+    checks = checks_state(pr["statusCheckRollup"])
+    if checks == "failed": return "failed", "checks failed"
+    if checks == "pending" or pr["mergeable"] == "UNKNOWN":
+        if time.time() - i["at"] > WAIT_CHECKS: return "failed", "checks still running an hour after the time"
+        return "waiting", "waiting for checks"
+    gh("pr", "merge", i["url"], f"--{i['method']}", "--match-head-commit", pr["headRefOid"])
+    return "merged", f"merged ({i['method']})"
+
+
+def cmd_run_due(_args):
+    if not is_server():
+        return
+    with Store() as st:
+        due = [i for i in st.items if i["state"] in ("scheduled", "waiting") and i["at"] <= time.time()]
+        for i in due:
+            try:
+                state, msg = attempt(i)
+            except Exception as e:  # gh failed: try again next minute, give up after the wait
+                late = time.time() - i["at"] > WAIT_CHECKS
+                state, msg = ("failed", str(e)[:300]) if late else ("waiting", f"retrying: {str(e)[:200]}")
+            if (state, msg) != (i["state"], i.get("message")):
+                log(f"{i['repo']}#{i['number']}: {state} - {msg}")
+            i["state"], i["message"], i["updated"] = state, msg, time.time()
+        st.save()
+
+
+# --- The timer: cron on Linux/macOS, Task Scheduler on Windows ---
+
+def script_path():
+    return os.path.realpath(sys.argv[0])
+
+
+def windows_python():
+    """pythonw.exe runs without flashing a console window every minute."""
+    exe = sys.executable
+    w = os.path.join(os.path.dirname(exe), "pythonw.exe")
+    return w if os.path.exists(w) else exe
+
+
+def timer_installed():
+    if WINDOWS:
+        r = subprocess.run(["schtasks", "/Query", "/TN", TASK], capture_output=True, text=True)
+        return r.returncode == 0
+    if not shutil.which("crontab"):
+        return False
+    cur = subprocess.run(["crontab", "-l"], capture_output=True, text=True).stdout
+    return f"{script_path()} run-due" in cur
+
+
+def install_timer():
+    if timer_installed():
+        return "timer already set up"
+    if WINDOWS:
+        run = f'"{windows_python()}" "{script_path()}" run-due'
+        r = subprocess.run(["schtasks", "/Create", "/F", "/SC", "MINUTE", "/MO", "1", "/TN", TASK, "/TR", run],
+                           capture_output=True, text=True)
+        if r.returncode != 0:
+            die(f"Task Scheduler refused: {(r.stderr or r.stdout).strip()}")
+        return "Task Scheduler set up: runs every minute while you are logged in"
+    if not shutil.which("crontab"):
+        die("no crontab on this machine")
+    line = f"* * * * * {script_path()} run-due >/dev/null 2>&1 # herdr-pr scheduled merges"
+    cur = subprocess.run(["crontab", "-l"], capture_output=True, text=True).stdout
+    new = cur.rstrip("\n") + ("\n" if cur.strip() else "") + line + "\n"
+    subprocess.run(["crontab", "-"], input=new, text=True, check=True)
+    return "cron set up: runs every minute"
+
+
+def remove_timer():
+    if WINDOWS:
+        subprocess.run(["schtasks", "/Delete", "/F", "/TN", TASK], capture_output=True, text=True)
+        return
+    if not shutil.which("crontab"):
+        return
+    cur = subprocess.run(["crontab", "-l"], capture_output=True, text=True).stdout
+    keep = [l for l in cur.splitlines() if "herdr-pr" not in l or "run-due" not in l]
+    subprocess.run(["crontab", "-"], input="\n".join(keep) + ("\n" if keep else ""), text=True, check=True)
+
+
+def cmd_setup(_args):
+    os.makedirs(HOME, exist_ok=True)
+    open(MARKER, "a").close()
+    msg = install_timer()
+    ok = subprocess.run([gh_exe(), "auth", "status"], capture_output=True, text=True).returncode == 0 if gh_exe() else False
+    log("set up as a scheduler")
+    print(f"this machine is a scheduler. {msg}." + ("" if ok else " Warning: gh isn't signed in here, so merges will fail until it is (gh auth login)."))
+
+
+def cmd_remove(_args):
+    remove_timer()
+    if os.path.exists(MARKER):
+        os.remove(MARKER)
+    log("no longer a scheduler")
+    print("this machine is no longer a scheduler (its scheduled merges are kept and run again after setup)")
+
+
+def cmd_status(args):
+    info = {"version": VERSION, "server": is_server(), "timer": timer_installed(),
+            "os": "windows" if WINDOWS else platform.system().lower(),
+            "gh": bool(gh_exe()), "host": platform.node()}
+    if is_server():
+        with Store() as st:
+            info["pending"] = sum(1 for i in st.items if i["state"] in ("scheduled", "waiting"))
+    if "--json" in args:
+        print(json.dumps(info))
+    else:
+        print(f"herdr-pr v{VERSION} on {info['host']} ({info['os']}): "
+              + ("scheduler" if info["server"] else "not a scheduler")
+              + (", timer running" if info["timer"] else ", no timer"))
+
+
+def cmd_outbox(args):
+    items = read_outbox()
+    if "--json" in args:
+        print(json.dumps(items))
+    else:
+        print("\n".join(f"{w['id']} {w['op']} {w.get('url') or w.get('ref')}" for w in items) or "nothing queued")
+
+
+def cmd_outbox_done(args):
+    if not args: die("usage: herdr-pr outbox-done <id>")
+    ident = re.sub(r"[^\w-]", "", args[0])
+    try:
+        os.remove(os.path.join(OUTBOX, f"{ident}.json"))
+    except FileNotFoundError:
+        pass
+
+
+# --- Asks: an agent asks the person to merge; Herdr's PR panel shows Merge / Decline ---
+
+ASKS = os.path.join(HOME, "pr-asks")
+RISKS = ("low", "medium", "high", "critical")
+KEEP_ASKS = 7 * 86400
+
+
+def ask_path(ident):
+    return os.path.join(ASKS, re.sub(r"[^\w-]", "", ident) + ".json")
+
+
+def write_ask(item):
+    os.makedirs(ASKS, exist_ok=True)
+    tmp = ask_path(item["id"]) + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(item, f)
+    os.replace(tmp, ask_path(item["id"]))
+
+
+def read_ask(ident):
+    try:
+        with open(ask_path(ident)) as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def all_asks():
+    try:
+        names = sorted(n for n in os.listdir(ASKS) if n.endswith(".json"))
+    except FileNotFoundError:
+        return []
+    out, now = [], time.time()
+    for n in names:
+        a = read_ask(n[:-5])
+        if not a:
+            continue
+        if a["state"] != "pending" and now - a.get("updated", now) > KEEP_ASKS:
+            try: os.remove(os.path.join(ASKS, n))
+            except OSError: pass
+            continue
+        out.append(a)
+    return out
+
+
+def parse_duration(text):
+    m = re.fullmatch(r"\s*(\d+)\s*([smhd]?)\s*", text or "")
+    if not m: die(f"can't read the duration: {text}")
+    return int(m[1]) * {"": 60, "s": 1, "m": 60, "h": 3600, "d": 86400}[m[2]]
+
+
+def cmd_ask(args):
+    if not args or args[0].startswith("-"):
+        die("usage: herdr-pr ask <pr> [--risk low|medium|high|critical] [--area design,pipeline,...] [--testing steps] [--method squash] [--note text] [--wait]")
+    url, repo, number = pr_url(args[0])
+    method, note, wait, timeout = "squash", "", False, 30 * 60
+    risk, areas, testing = "medium", [], ""
+    by = os.environ.get("HERDR_PR_BY") or me()
+    rest = args[1:]
+    while rest:
+        a = rest.pop(0)
+        if a == "--method" and rest: method = rest.pop(0)
+        elif a == "--note" and rest: note = rest.pop(0)
+        elif a == "--by" and rest: by = rest.pop(0)
+        elif a == "--risk" and rest: risk = rest.pop(0).lower()
+        elif a == "--area" and rest: areas += [x.strip().lower() for x in rest.pop(0).split(",") if x.strip()]
+        elif a == "--testing" and rest: testing = rest.pop(0)
+        elif a == "--wait": wait = True
+        elif a == "--timeout" and rest: timeout = parse_duration(rest.pop(0))
+        elif a == "--json": pass
+        else: die(f"unknown option {a}")
+    if method not in METHODS: die(f"--method must be one of {', '.join(METHODS)}")
+    if risk not in RISKS: die(f"--risk must be one of {', '.join(RISKS)}")
+    title, head = "", None
+    if gh_exe():  # best effort: name it, and pin the commit the agent is asking about
+        try:
+            pr = json.loads(gh("pr", "view", url, "--json", "title,headRefOid,state"))
+            if pr["state"] != "OPEN": die(f"{repo}#{number} is {pr['state'].lower()}")
+            title, head = pr["title"], pr["headRefOid"]
+        except RuntimeError:
+            pass
+    item = {"id": uuid.uuid4().hex[:8], "url": url, "repo": repo, "number": number, "title": title, "method": method,
+            "head": head, "note": note, "by": by, "created": time.time(), "updated": time.time(),
+            "state": "pending", "message": "", "risk": risk, "areas": sorted(set(areas)), "testing": testing}
+    write_ask(item)
+    if "--json" in args and not wait:
+        print(json.dumps(item)); return
+    print(f"asked: {repo}#{number} ({method}), id {item['id']}. Waiting for the person to press Merge or Decline in Herdr's PR panel.")
+    if not wait:
+        print(f"check later with: herdr-pr ask-status {item['id']}"); return
+    end = time.time() + timeout
+    while time.time() < end:
+        time.sleep(3)
+        cur = read_ask(item["id"])
+        if cur and cur["state"] != "pending":
+            print(f"{cur['state']}: {cur.get('message') or ''}".strip())
+            sys.exit(0 if cur["state"] == "merged" else 1)
+    print(f"no answer within {timeout // 60} min; the ask stays open (herdr-pr ask-status {item['id']})")
+    sys.exit(2)
+
+
+def cmd_ask_status(args):
+    if not args: die("usage: herdr-pr ask-status <id>")
+    a = read_ask(args[0])
+    if not a: die(f"no ask {args[0]}")
+    print(json.dumps(a) if "--json" in args else f"{a['state']}: {a['repo']}#{a['number']} {a.get('message') or ''}".strip())
+
+
+def cmd_asks(args):
+    items = all_asks()
+    if "--all" not in args:
+        items = [a for a in items if a["state"] == "pending"]
+    if "--json" in args:
+        print(json.dumps(items))
+    else:
+        print("\n".join(f"{a['id']} {a['state']:<8} {a['repo']}#{a['number']} ({a['method']}) by {a['by']}" for a in items) or "no asks")
+
+
+def cmd_answer(args):
+    if len(args) < 2: die("usage: herdr-pr answer <id> merged|declined|failed [--message text]")
+    ident, state = args[0], args[1]
+    if state not in ("merged", "declined", "failed"): die("state must be merged, declined or failed")
+    message = args[args.index("--message") + 1] if "--message" in args and args.index("--message") + 1 < len(args) else ""
+    a = read_ask(ident)
+    if not a: die(f"no ask {ident}")
+    a["state"], a["message"], a["updated"] = state, message, time.time()
+    write_ask(a)
+    print(f"{ident}: {state}")
+
+
+# --- Secrets: an agent asks the person to put a value into a file; the agent never sees it ---
+
+SECRETS = os.path.join(HOME, "secret-asks")
+KEY_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_.-]*$")
+
+
+def secret_path(ident):
+    return os.path.join(SECRETS, re.sub(r"[^\w-]", "", ident) + ".json")
+
+
+def write_secret_ask(item):
+    os.makedirs(SECRETS, exist_ok=True)
+    tmp = secret_path(item["id"]) + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(item, f)
+    os.replace(tmp, secret_path(item["id"]))
+
+
+def read_secret_ask(ident):
+    try:
+        with open(secret_path(ident)) as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def cmd_secret(args):
+    if len(args) < 2 or args[0].startswith("-"):
+        die("usage: herdr-pr secret <file> <KEY> [--note text] [--wait [--timeout 30m]]")
+    path, name = os.path.abspath(os.path.expanduser(args[0])), args[1]
+    if not KEY_RE.match(name): die(f"not a variable name: {name}")
+    note, wait, timeout = "", False, 30 * 60
+    by = os.environ.get("HERDR_PR_BY") or me()
+    rest = args[2:]
+    while rest:
+        a = rest.pop(0)
+        if a == "--note" and rest: note = rest.pop(0)
+        elif a == "--by" and rest: by = rest.pop(0)
+        elif a == "--wait": wait = True
+        elif a == "--timeout" and rest: timeout = parse_duration(rest.pop(0))
+        else: die(f"unknown option {a}")
+    item = {"id": uuid.uuid4().hex[:8], "file": path, "key": name, "note": note, "by": by,
+            "exists": os.path.exists(path), "created": time.time(), "updated": time.time(), "state": "pending"}
+    write_secret_ask(item)
+    print(f"asked for {name} in {path} (id {item['id']}). The person fills it in Herdr's Files panel; you won't see the value.")
+    if not wait:
+        print(f"check later with: herdr-pr secret-status {item['id']}"); return
+    end = time.time() + timeout
+    while time.time() < end:
+        time.sleep(3)
+        cur = read_secret_ask(item["id"])
+        if cur and cur["state"] != "pending":
+            print(cur["state"]); sys.exit(0 if cur["state"] == "filled" else 1)
+    print(f"no answer within {timeout // 60} min; the request stays open (herdr-pr secret-status {item['id']})")
+    sys.exit(2)
+
+
+def cmd_secret_status(args):
+    if not args: die("usage: herdr-pr secret-status <id>")
+    a = read_secret_ask(args[0])
+    if not a: die(f"no secret request {args[0]}")
+    print(a["state"])
+
+
+def cmd_secrets(args):
+    try:
+        names = sorted(n for n in os.listdir(SECRETS) if n.endswith(".json"))
+    except FileNotFoundError:
+        names = []
+    out, now = [], time.time()
+    for n in names:
+        a = read_secret_ask(n[:-5])
+        if not a: continue
+        if a["state"] != "pending" and now - a.get("updated", now) > KEEP_ASKS:
+            try: os.remove(os.path.join(SECRETS, n))
+            except OSError: pass
+            continue
+        if a["state"] == "pending" or "--all" in args: out.append(a)
+    print(json.dumps(out) if "--json" in args else "\n".join(f"{a['id']} {a['state']} {a['key']} -> {a['file']}" for a in out) or "no requests")
+
+
+def env_line(name, value, export=""):
+    if value == "" or re.search(r"[\s#'\"$\\`]", value):
+        value = '"' + value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n") + '"'
+    return f"{export}{name}={value}"
+
+
+def set_env_value(path, name, value):
+    """Replaces NAME=... (or export NAME=...) in a dotenv-style file, else appends it. Keeps the file's mode."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            lines = f.read().splitlines()
+        new = False
+    except FileNotFoundError:
+        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+        lines, new = [], True
+    pat = re.compile(r"^(\s*)(export\s+)?" + re.escape(name) + r"\s*=")
+    done = False
+    for i, line in enumerate(lines):
+        m = pat.match(line)
+        if m:
+            lines[i] = m.group(1) + env_line(name, value, m.group(2) or "")
+            done = True
+            break
+    if not done:
+        lines.append(env_line(name, value))
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.write("\n".join(lines) + "\n")
+    if new and not WINDOWS:
+        os.chmod(path, 0o600)
+
+
+def cmd_secret_fill(args):
+    """The Files panel: secret-fill <id> <value as base64>. The value is never logged or stored elsewhere."""
+    import base64
+    if len(args) < 2: die("usage: herdr-pr secret-fill <id> <base64 value>")
+    a = read_secret_ask(args[0])
+    if not a: die(f"no secret request {args[0]}")
+    if a["state"] != "pending": die(f"request {args[0]} is already {a['state']}")
+    value = base64.b64decode(args[1]).decode("utf-8")
+    set_env_value(a["file"], a["key"], value)
+    a["state"], a["updated"] = "filled", time.time()
+    write_secret_ask(a)
+    log(f"secret {a['key']} filled in {a['file']}")
+    print("filled")
+
+
+def cmd_secret_decline(args):
+    if not args: die("usage: herdr-pr secret-decline <id>")
+    a = read_secret_ask(args[0])
+    if not a: die(f"no secret request {args[0]}")
+    a["state"], a["updated"] = "declined", time.time()
+    write_secret_ask(a)
+    print("declined")
+
+
+def cmd_inbox(args):
+    """Everything waiting on this machine in one call (the Herdr panels poll this):
+    pending merge asks, pending secret requests, requests queued for a scheduler, and whether
+    this machine is a scheduler."""
+    asks = [a for a in all_asks() if a["state"] == "pending"]
+    secrets = []
+    try:
+        names = sorted(n for n in os.listdir(SECRETS) if n.endswith(".json"))
+    except FileNotFoundError:
+        names = []
+    for n in names:
+        a = read_secret_ask(n[:-5])
+        if a and a.get("state") == "pending":
+            secrets.append(a)
+    print(json.dumps({"version": VERSION, "server": is_server(), "asks": asks, "secrets": secrets, "outbox": read_outbox()}))
+
+
+def main():
+    a = sys.argv[1:]
+    if not a or a[0] in ("-h", "--help", "help"):
+        print(__doc__.strip()); return
+    cmds = {"schedule": cmd_schedule, "list": cmd_list, "cancel": cmd_cancel, "run-due": cmd_run_due,
+            "setup": cmd_setup, "install-cron": cmd_setup, "remove": cmd_remove, "status": cmd_status,
+            "outbox": cmd_outbox, "outbox-done": cmd_outbox_done,
+            "ask": cmd_ask, "ask-status": cmd_ask_status, "asks": cmd_asks, "answer": cmd_answer,
+            "secret": cmd_secret, "secret-status": cmd_secret_status, "secrets": cmd_secrets,
+            "secret-fill": cmd_secret_fill, "secret-decline": cmd_secret_decline, "inbox": cmd_inbox}
+    if a[0] not in cmds: die(f"unknown command {a[0]} (see herdr-pr help)")
+    cmds[a[0]](a[1:])
+
+
+if __name__ == "__main__":
+    main()

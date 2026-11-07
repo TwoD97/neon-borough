@@ -1,0 +1,6 @@
+{
+  "place": "none",
+  "title": "Pull requests",
+  "focusable": true,
+  "overlay": { "kind": "dialog", "frame": "none", "width": 0.84, "height": 0.86 }
+}

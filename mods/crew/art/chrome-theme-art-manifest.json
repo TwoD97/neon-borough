@@ -1,0 +1,299 @@
+{
+  "method": "Explicit connected dark-face masks; luminance-preserving chromatic accent recolor; neutral metal tint with monotonic midtone lift Y + .32*sqrt(Y)*(1-Y), anchored deep seams and white highlights. Alpha and pixels outside masks exact.",
+  "palettes": {
+    "pearl": {
+      "paper": [
+        230,
+        239,
+        242
+      ],
+      "primary": "#006b78",
+      "secondary": "#78509b",
+      "metal": "#c5dae5"
+    },
+    "ivory": {
+      "paper": [
+        242,
+        231,
+        214
+      ],
+      "primary": "#8d4c2e",
+      "secondary": "#795180",
+      "metal": "#d8c6aa"
+    }
+  },
+  "assets": [
+    {
+      "source": "mods/crew/art/group-header.png",
+      "source_sha256": "5f3c929d98269145c44bf5dd2a78cfdc3250fa1595bc34b0a6084dab48828d75",
+      "size": [
+        2172,
+        724
+      ],
+      "visible_bounds_alpha10": [
+        20,
+        268,
+        2152,
+        454
+      ],
+      "face_regions": [
+        {
+          "points": [
+            [
+              0.126,
+              0.43
+            ],
+            [
+              0.138,
+              0.407
+            ],
+            [
+              0.837,
+              0.407
+            ],
+            [
+              0.85,
+              0.435
+            ],
+            [
+              0.85,
+              0.539
+            ],
+            [
+              0.837,
+              0.568
+            ],
+            [
+              0.138,
+              0.568
+            ],
+            [
+              0.126,
+              0.539
+            ]
+          ],
+          "seed": [
+            0.5,
+            0.49
+          ],
+          "ellipse": false,
+          "allow_warm_dark": false,
+          "dark_limit": 43
+        },
+        {
+          "points": [
+            [
+              0.052,
+              0.443
+            ],
+            [
+              0.065,
+              0.418
+            ],
+            [
+              0.098,
+              0.418
+            ],
+            [
+              0.112,
+              0.448
+            ],
+            [
+              0.112,
+              0.551
+            ],
+            [
+              0.098,
+              0.578
+            ],
+            [
+              0.065,
+              0.578
+            ],
+            [
+              0.052,
+              0.551
+            ]
+          ],
+          "seed": [
+            0.08,
+            0.49
+          ],
+          "ellipse": false,
+          "allow_warm_dark": false,
+          "dark_limit": 43
+        },
+        {
+          "points": [
+            [
+              0.868,
+              0.457
+            ],
+            [
+              0.877,
+              0.44
+            ],
+            [
+              0.945,
+              0.44
+            ],
+            [
+              0.958,
+              0.463
+            ],
+            [
+              0.958,
+              0.53
+            ],
+            [
+              0.945,
+              0.555
+            ],
+            [
+              0.877,
+              0.555
+            ],
+            [
+              0.868,
+              0.533
+            ]
+          ],
+          "seed": [
+            0.91,
+            0.49
+          ],
+          "ellipse": false,
+          "allow_warm_dark": false,
+          "dark_limit": 43
+        }
+      ],
+      "face_pixel_counts": [
+        150940,
+        12925,
+        13519
+      ],
+      "variants": [
+        {
+          "path": "mods/crew/art/group-header-pearl.png",
+          "palette": "pearl",
+          "sha256": "fc5e3ce47787d345dbac16d6be7113978308f1d95173eff74fb33a54d9c15028",
+          "changed_pixels": 371474,
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 152189
+        },
+        {
+          "path": "mods/crew/art/group-header-ivory.png",
+          "palette": "ivory",
+          "sha256": "22b8230a90f9b9ff87645db088b2c939ba8fe6765105006bcb942be89e409c09",
+          "changed_pixels": 371732,
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 152189
+        }
+      ]
+    },
+    {
+      "source": "mods/crew/art/hangar-deck.png",
+      "source_sha256": "6497e752f6e1848ec7201445774fe199ae4f0bcf0883bb2fd830deefe97630ad",
+      "size": [
+        1263,
+        1246
+      ],
+      "visible_bounds_alpha10": [
+        11,
+        592,
+        1252,
+        671
+      ],
+      "face_regions": [],
+      "face_pixel_counts": [],
+      "variants": [
+        {
+          "path": "mods/crew/art/hangar-deck-pearl.png",
+          "palette": "pearl",
+          "sha256": "b03dccc6690ef4fea72ab295fbdab006d65a730f25dcda563bcc5816d76a30fb",
+          "changed_pixels": 86465,
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 76788
+        },
+        {
+          "path": "mods/crew/art/hangar-deck-ivory.png",
+          "palette": "ivory",
+          "sha256": "69c284a9a0fc8984dcd4461b41a221f0725b059ab2dccef8eee7d1f0da3db9fa",
+          "changed_pixels": 86527,
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 76788
+        }
+      ]
+    },
+    {
+      "source": "mods/crew/art/control-keycap.png",
+      "source_sha256": "55e7d0763bf02a39a2ef3355ea6c5517682e3a1e42cf8dbc214ed96a1da1e339",
+      "size": [
+        1254,
+        1254
+      ],
+      "visible_bounds_alpha10": [
+        33,
+        45,
+        1221,
+        1210
+      ],
+      "face_regions": [
+        {
+          "points": [
+            [
+              0.135,
+              0.137
+            ],
+            [
+              0.867,
+              0.137
+            ],
+            [
+              0.867,
+              0.867
+            ],
+            [
+              0.135,
+              0.867
+            ]
+          ],
+          "seed": [
+            0.5,
+            0.5
+          ],
+          "ellipse": false,
+          "allow_warm_dark": false,
+          "dark_limit": 55
+        }
+      ],
+      "face_pixel_counts": [
+        797347
+      ],
+      "variants": [
+        {
+          "path": "mods/crew/art/control-keycap-pearl.png",
+          "palette": "pearl",
+          "sha256": "29a6167d1c4ab8949c0dfa378cfb4fdeb3e7498d6fe5dd28430e4ed363d97d6f",
+          "changed_pixels": 1342055,
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 451119
+        },
+        {
+          "path": "mods/crew/art/control-keycap-ivory.png",
+          "palette": "ivory",
+          "sha256": "0a24adcd1b10f98b306f17a59c4105bae39616c40c5c0414320b07e6aad9296d",
+          "changed_pixels": 1342527,
+          "alpha_exact": true,
+          "outside_masks_exact": true,
+          "metal_pixels": 451119
+        }
+      ]
+    }
+  ]
+}

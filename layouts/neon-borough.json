@@ -1,0 +1,266 @@
+{
+  "id": "root",
+  "type": "stack",
+  "font": "Geist Mono",
+  "ui_font": "Space Grotesk",
+  "active": "desktop",
+  "children": [
+    {
+      "id": "desktop",
+      "cloned_from": {
+        "name": "main",
+        "version": "0.1.13"
+      },
+      "type": "row",
+      "children": [
+        {
+          "id": "sidebar",
+          "type": "column",
+          "children": [
+            {
+              "id": "brand",
+              "type": "block",
+              "content": {
+                "mod": "neon-chrome"
+              },
+              "size": {
+                "px": 46
+              },
+              "window_drag": true
+            },
+            {
+              "id": "sidebar-lists",
+              "type": "column",
+              "children": [
+                {
+                  "id": "spaces",
+                  "type": "block",
+                  "content": {
+                    "mod": "my-spaces"
+                  },
+                  "size": {
+                    "weight": 0.7
+                  },
+                  "min": 90
+                },
+                {
+                  "id": "agents",
+                  "type": "block",
+                  "content": {
+                    "mod": "my-agents"
+                  },
+                  "size": {
+                    "weight": 1.3
+                  },
+                  "min": 90
+                }
+              ]
+            },
+            {
+              "id": "companion",
+              "type": "block",
+              "size": {
+                "px": 126
+              },
+              "content": {
+                "mod": "crew",
+                "props": {
+                  "pet": true
+                }
+              }
+            },
+            {
+              "id": "sidebar-footer",
+              "type": "block",
+              "content": {
+                "mod": "neon-chrome",
+                "props": {
+                  "footer": true
+                }
+              },
+              "size": {
+                "px": 69
+              }
+            }
+          ],
+          "size": {
+            "px": 252
+          },
+          "min": 44,
+          "max": 480,
+          "background": {
+            "image": "mods/my-spaces/art/sidebar-neon.png",
+            "fit": "cover"
+          },
+          "resizable": false
+        },
+        {
+          "id": "work",
+          "type": "column",
+          "children": [
+            {
+              "id": "tabs",
+              "type": "block",
+              "content": {
+                "mod": "my-tabs"
+              },
+              "size": {
+                "px": 42
+              },
+              "window_drag": true
+            },
+            {
+              "id": "work-body",
+              "floating": [
+                {
+                  "id": "inbox",
+                  "content": {
+                    "mod": "neon-inbox"
+                  },
+                  "edge": "bottom",
+                  "align": "end"
+                }
+              ],
+              "type": "row",
+              "children": [
+                {
+                  "id": "main",
+                  "type": "block",
+                  "content": {
+                    "tab": "active",
+                    "pane": {
+                      "header": {
+                        "content": {
+                          "mod": "neon-pane"
+                        },
+                        "reveal": "always",
+                        "height": 38,
+                        "position": "top"
+                      },
+                      "background": "#080d1628",
+                      "border": {
+                        "width": 1,
+                        "color": "border"
+                      },
+                      "focus": {
+                        "width": 1,
+                        "color": "accent"
+                      },
+                      "radius": 0,
+                      "gap": 12,
+                      "lone": true
+                    }
+                  },
+                  "background": {
+                    "image": "mods/crew/art/rooftop-workshop.png",
+                    "fit": "cover"
+                  }
+                },
+                {
+                  "id": "panel",
+                  "type": "column",
+                  "children": [
+                    {
+                      "id": "panel-body",
+                      "type": "stack",
+                      "children": [
+                        {
+                          "id": "files",
+                          "type": "block",
+                          "content": {
+                            "mod": "neon-files"
+                          }
+                        },
+                        {
+                          "id": "changes",
+                          "type": "block",
+                          "content": {
+                            "mod": "neon-changes"
+                          }
+                        },
+                        {
+                          "id": "prs",
+                          "type": "block",
+                          "content": {
+                            "mod": "pr-hub"
+                          }
+                        }
+                      ],
+                      "active": "files"
+                    }
+                  ],
+                  "size": {
+                    "px": 368
+                  },
+                  "min": 280,
+                  "max": 900,
+                  "hidden": true
+                }
+              ],
+              "padding": 8,
+              "gap": 8
+            },
+            {
+              "id": "status",
+              "type": "block",
+              "content": {
+                "mod": "neon-status"
+              },
+              "size": {
+                "px": 28
+              }
+            }
+          ],
+          "resizable": false
+        }
+      ],
+      "background": {
+        "image": "mods/crew/art/rooftop-workshop.png",
+        "fit": "cover"
+      },
+      "terminal_padding": [
+        14,
+        12
+      ],
+      "divider": {
+        "width": 1,
+        "color": "border"
+      },
+      "traffic_lights": [
+        12,
+        16
+      ]
+    },
+    {
+      "id": "crew-screen",
+      "type": "block",
+      "content": {
+        "mod": "crew",
+        "props": {
+          "full": true
+        }
+      }
+    },
+    {
+      "id": "crew-cards",
+      "type": "block",
+      "content": {
+        "mod": "crew",
+        "props": {
+          "full": true,
+          "cards": true
+        }
+      }
+    }
+  ],
+  "titlebar": "none",
+  "background": "#090d18",
+  "terminal_opacity": 0.65,
+  "terminal_padding": [
+    16,
+    16
+  ],
+  "terminal_menu": "my-menu",
+  "theme": "neon-borough",
+  "preview": "layouts/neon-borough.png"
+}

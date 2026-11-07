@@ -1,0 +1,5 @@
+{
+  "place": "none",
+  "title": "Neon notifications",
+  "overlay": { "kind": "popup", "frame": "none", "width": 360, "height": 76 }
+}

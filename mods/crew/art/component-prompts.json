@@ -1,0 +1,13 @@
+{
+  "mode": "Built-in image_gen",
+  "assets": [
+    {
+      "file": "mods/pr-hub/art/pr-component.png",
+      "prompt": "Use case: stylized-concept. Asset type: ACTUAL production game UI component skin, not a banner, not a scene, not a screenshot. Generate one horizontal cyberpunk pull-request CARD chassis, wide 3:1 aspect ratio. The artwork IS the component: finely machined midnight graphite faceplate, angular clipped corners, double bevelled metallic rim, restrained luminous cyan circuit channels on upper left and lower right rim, tiny amber hardware indicators, small integrated three-branch merge emblem embossed in the extreme upper-left corner. Outer card silhouette has a real transparent background. Main interior 85 percent is nearly flat very dark navy and visually quiet, reserving space for real live text to be overlaid: 12px padding, header line at top, 2 title lines in middle, three status badges along bottom. Border thickness modest, exquisite material finish, elegant premium sci-fi game interface component, clear shape at 400x135 pixels. No landscape, no rooms, no skyline, no illustrated scene, no words, no numbers, no placeholder text, no buttons drawn inside, no glow spilling into text space. Front orthographic view, one complete card only with clean alpha edges."
+    },
+    {
+      "file": "mods/crew/art/crew-component.png",
+      "prompt": "Use case: stylized-concept. Asset: one actual CYBERPUNK GAME UI CREW ROW COMPONENT SKIN, horizontal 4:1. Not artwork behind UI; this is the finished sculpted component's empty chassis, text and character inserted by app. Face-on orthographic. Titanium graphite bevelled angular outer card with softly clipped corners and a thin luminous cyan/purple circuit perimeter. LEFT 22 percent contains a clearly recessed empty portrait socket with circular docking glow and tiny cute antenna-shaped architectural protrusions integrated into the rim. RIGHT 75 percent is completely quiet flat near-black navy writing area, no scene or texture, divided from portrait socket by a slender bevelled separator. Top and bottom borders thin and crisply machined with tiny screws, hardware details, copper contacts, sophisticated playful sci-fi craftsmanship. Outer silhouette truly transparent, no drop shadow. No robot, no character, no room, no city, no landscape, no banner, no hero, no letters, no numbers, no glyph placeholders, no fake buttons. One complete component, readable at 400x100 pixels."
+    }
+  ]
+}
