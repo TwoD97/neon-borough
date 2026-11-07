@@ -2,7 +2,11 @@
 
 A cyberpunk layout for [herdr](https://herdr.dev): neon panels, a robot crew for your agents, a town for your spaces, and panels for approving merges, moving files between machines and handing agents secrets they never see.
 
-![Neon Borough](preview.png)
+![Neon Borough demo: agents working, a merge request and a secret request arriving, an agent asking for permission, and the town view](demo.gif)
+
+[Full-resolution video (MP4)](demo.mp4) · [Still screenshot](preview.png)
+
+The demo is a staged session: the projects and agents in it are scripted, not real work.
 
 ## Install
 
