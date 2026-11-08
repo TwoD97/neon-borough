@@ -55,6 +55,7 @@ Mods:
 | `my-tabs` | tab bar (clone of tabs) with Files / Changes / PRs toggles |
 | `neon-pane` | pane header rail |
 | `neon-status` | status strip (clone of workspace-status) |
+| `neon-usage` | Usage & accounts panel: Codex and Claude Code limits, tokens, account switch |
 | `neon-files` | Files: tree, icons (`types/`, `icons.js`), search, edit, transfer (`transfer.js`), zip/save/secrets (`fileops.js`) |
 | `neon-changes` | Changes (clone of changes): wrapped diff, commit box |
 | `pr-hub` | Pull requests (built on pr-flow, MIT), approvals, schedules (`scheduler.js`), bundles the `herdr-pr` CLI |

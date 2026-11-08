@@ -1,7 +1,7 @@
 import { skin, artText, mix } from "./theme-tokens.js";
 import { View, div, svg, image } from "gpui-kit";
 import { h_flex } from "gpui-base";
-import { spaces, agents, theme, run, window, keys, settings } from "herdr";
+import { spaces, agents, theme, run, window, keys, settings, shared } from "herdr";
 import { bevel } from "./controls.js";
 
 export default class WorkspaceStatus extends View {
@@ -23,6 +23,12 @@ export default class WorkspaceStatus extends View {
     const list = agents();
     const needs = list.filter(a => a.status === "blocked").length;
     const working = list.filter(a => a.status === "working").length;
+    const usage = shared("usage.snapshot");
+    const reported = Array.isArray(usage?.providers) ? usage.providers.flatMap(p => {
+      const quota = Array.isArray(p.windows) ? p.windows.find(w => typeof w.used === "number" && Number.isFinite(w.used) && (!w.reset || w.reset > Date.now())) : null;
+      return quota ? [{label:`${p.id === "claude" ? "Claude" : "Codex"} ${Math.round(quota.used)}%`, detail:`${p.name}: ${quota.used}% used · ${quota.label}`}]:[];
+    }) : [];
+    const usageHint = ["Usage & accounts · Codex and Claude Code", ...reported.map(p=>p.detail), usage?.updated ? `Last checked ${new Date(usage.updated).toLocaleString()}` : "Open to check your usage"].join("\n");
     const chip = (icon, text, color = t.muted) => bevel(h_flex().h(20).px(8).gap(5).items_center().min_w(0)).cursor_default().text_color(color)
       .child(svg(`mods/crew/icons/${icon}.svg`).size(11).flex_none())
       .child(div().min_w(0).truncate().child(text));
@@ -37,6 +43,11 @@ export default class WorkspaceStatus extends View {
       .when(needs > 0, el => el.child(h_flex().gap(4).flex_none().items_center().text_color(skin().warning)
         .child(div().size(4).bg(skin().warning)).tooltip(`${needs} agents need you`).child(this.narrow ? String(needs) : `${needs} ${this.compact ? "waiting" : "need you"}`)))
       .child(div().flex_1().min_w(0))
+      .child(bevel(h_flex().id("usage-accounts").flex_none().h(20).px(this.narrow ? 6 : 8).gap(5).items_center()).text_color(t.accent)
+        .tooltip(usageHint).hover(s => s.text_color(t.foreground))
+        .on_click(() => run("mod.open", {name:"neon-usage"}))
+        .child(svg("mods/neon-status/usage.svg").size(12).flex_none())
+        .when(!this.narrow, el => el.child(!this.compact && reported.length ? reported.map(p=>p.label).join(" · ") : "Usage & accounts")))
       .child(bevel(div().id("palette").flex_none().h(20).px(8).flex().items_center(),true).text_color(t.accent)
         .tooltip(this.hint(t)).hover(s => s.text_color(t.foreground)).on_click(() => run("app.palette"))
         .child(this.compact ? "Commands" : this.hint(t)));

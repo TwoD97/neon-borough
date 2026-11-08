@@ -35,6 +35,14 @@ These use `herdr-pr`, a small Python CLI shipped in `mods/pr-hub/herdr-pr`.
   Every PR description gets a Manual testing section where a person can check the change.
   ```
 
+## Optional: usage & accounts
+
+The usage panel (gauge in the status bar) shows plan limits, tokens and the signed-in account for Codex and Claude Code, and opens a sign-in tab to switch accounts. It never reads your credentials. Codex needs only the `codex` CLI on `PATH`. For Claude Code run this once, after the mods are installed. It backs up `~/.claude/settings.json`, then adds a status-line command and a SessionStart hook; a status line you already had keeps running:
+
+```sh
+python ~/.config/herdr-app/mods/neon-usage/install-usage-monitor.py
+```
+
 ## What's inside
 
 See [RECIPE.md](RECIPE.md) for the full description: every region, behaviour, mod and known limit.
