@@ -6,6 +6,8 @@ import {bevel} from "./controls.js";
 import {panelSkin} from "./panel-skin.js";
 import {requestFrame} from "./request-skin.js";
 import {PROVIDERS,normalizeSnapshot,tokenLabel,tokenMetrics,percentLabel,resetLabel,reportedLabel,refreshDue} from "./model.js";
+import {notify} from "./notifications.js";
+import {ALERT_STATE_KEY,usageAlerts} from "./usage-alerts.js";
 
 export default class Usage extends View {
   init(_props,cx) {
@@ -18,7 +20,7 @@ export default class Usage extends View {
   }
   helper(){return `${appHome()}/mods/neon-usage/usage-monitor.py`;}
   close(){closeOverlay(props()?.overlay);}
-  refresh(cx) {
+  refresh(cx,manual=false) {
     if(this.loading)return;
     this.loading=true;this.error="";this.lastAttempt=Date.now();
     cx.spawn(async cx=>{
@@ -28,10 +30,22 @@ export default class Usage extends View {
         let data;try{data=JSON.parse(result.stdout);}catch{throw new Error("The usage helper returned unreadable data. Try Refresh.");}
         this.snapshot=normalizeSnapshot(data);
         setShared("usage.snapshot",this.snapshot);
-      }catch(error){this.error=String(error?.message||"Could not load usage.");}
+        this.announceUsage();
+      }catch(error){
+        this.error=String(error?.message||"Could not load usage.");
+        if(manual)notify({title:"Usage refresh failed",body:this.error,level:"error"},{key:"usage-refresh-failed",category:"usage",dedupeMs:60000});
+      }
       this.loading=false;this.now=Date.now();cx.notify();
     });
     cx.notify();
+  }
+  announceUsage() {
+    let previous;
+    try{previous=JSON.parse(localStorage.getItem(ALERT_STATE_KEY)||"null");}catch{previous=null;}
+    const {state,alerts}=usageAlerts(this.snapshot,previous);
+    // Save before delivery so repeated opens and refreshes cannot replay alerts.
+    localStorage.setItem(ALERT_STATE_KEY,JSON.stringify(state));
+    for(const alert of alerts)notify(alert.message,{key:alert.key,category:"usage"});
   }
   launch(provider,command) {
     const record=this.snapshot?.providers.find(p=>p.id===provider);
@@ -104,7 +118,7 @@ export default class Usage extends View {
         .child(v_flex().flex_1().min_w(0).gap(2)
           .child(div().truncate().text_size(16).font_semibold().child("Usage & accounts"))
           .child(div().text_size(10).text_color(t.dim).child("This computer")))
-        .child(this.button("usage-refresh",this.loading?"Refreshing…":"Refresh",(_e,cx)=>this.refresh(cx),t,false,!this.loading))
+        .child(this.button("usage-refresh",this.loading?"Refreshing…":"Refresh",(_e,cx)=>this.refresh(cx,true),t,false,!this.loading))
         .child(this.button("usage-close","×",()=>this.close(),t)))
       .child(v_flex().id("usage-scroll").flex_1().min_h(0).overflow_y_scrollbar().p(wide?14:10).gap(10)
         .when(Boolean(this.error),el=>el.child(div().p(10).border_l(2).border_color(t.warning).bg(t.raised).whitespace_normal().text_size(12).text_color(t.warning).child(this.error)))

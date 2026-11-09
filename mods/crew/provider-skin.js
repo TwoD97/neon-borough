@@ -1,3 +1,4 @@
+import {cardState,frameAsset} from "./card-state.js";
 import { div, image } from "gpui-kit";
 import { skin, art, artText, mix } from "./theme-tokens.js";
 
@@ -28,9 +29,10 @@ export function providerGeometry(provider,width,t=skin()) {
 // Only the unoccupied middle strip is shortened on a narrow sidebar. Both
 // illustrated ends use one uniform scale, keeping the circular socket round.
 // There is no painted rectangle or second frame behind the transparent artwork.
-export function providerFrame(el,provider,width,t=skin()) {
+export function providerFrame(el,provider,width,t=skin(),state=null) {
   const g=providerGeometry(provider,width,t);
-  const art=()=>image(g.frame).absolute().top(0).w(g.artWidth).h(g.height);
+  const power=state?cardState(state.status,state.focused,t.light):null;
+  const art=()=>image(frameAsset(g.frame,power?.powered??true)).absolute().top(0).w(g.artWidth).h(g.height);
   return el.relative().min_w(0)
     .when(g.artWidth<=width+.1, e=>e.child(art().left(0)))
     .when(g.artWidth>width+.1, e=>e

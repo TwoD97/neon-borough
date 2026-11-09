@@ -1,0 +1,21 @@
+{
+  "tool": "built-in image_gen",
+  "assets": [
+    {
+      "name": "glow-working.png",
+      "prompt": "Use case: stylized-concept. Production transparent raster VFX sprite for a cyberpunk pixel-art town game, final intended512x320px canvas (8:5 wide). Generate ONLY a soft cyan/teal light halo in hue #49dcd7, to sit BEHIND a building. No building, no ground, no ring, no source object, no scene, no text, no particles. Smooth low elliptical radial ambient glow: brightest region centered horizontally at70percent of canvasheight; faint vertical rise above it, very soft broadgroundedellipse. Inner light #49dcd7 with restrained pale center, smooth falloff in OPACITY to fully transparent at ALL outeredges. Not smoke, notfogtexture, notpaintedsurface. Transparent alpha contains the glow itself; zero opaque black/white/colored background. Keep a transparent margin on all four sides. One simple quiet colored light field suitable for blending behind detailed pixel buildings."
+    },
+    {
+      "name": "glow-blocked.png",
+      "prompt": "Use case: stylized-concept. Production transparent raster VFX sprite for a cyberpunk pixel-art town game, final intended512x320px canvas (8:5 wide). Generate ONLY a soft warm amber light halo in hue #ffb347, to sit BEHIND a building. No building, no ground, no ring, no source object, no scene, no text, no particles. Smooth low elliptical radial ambient glow: brightest region centered horizontally at70percent of canvasheight; faint vertical rise above it, very soft broadgroundedellipse. Inner light #ffb347 with restrained pale center, smooth falloff in OPACITY to fully transparent at ALL outeredges. Not smoke, notfogtexture, notpaintedsurface. Transparent alpha contains the glow itself; zero opaque black/white/colored background. Keep a transparent margin on all four sides. One simple quiet colored light field suitable for blending behind detailed pixel buildings."
+    },
+    {
+      "name": "glow-done.png",
+      "prompt": "Use case: stylized-concept. Production transparent raster VFX sprite for a cyberpunk pixel-art town game, final intended512x320px canvas (8:5 wide). Generate ONLY a soft mint green light halo in hue #7ee787, to sit BEHIND a building. No building, no ground, no ring, no source object, no scene, no text, no particles. Smooth low elliptical radial ambient glow: brightest region centered horizontally at70percent of canvasheight; faint vertical rise above it, very soft broadgroundedellipse. Inner light #7ee787 with restrained pale center, smooth falloff in OPACITY to fully transparent at ALL outeredges. Not smoke, notfogtexture, notpaintedsurface. Transparent alpha contains the glow itself; zero opaque black/white/colored background. Keep a transparent margin on all four sides. One simple quiet colored light field suitable for blending behind detailed pixel buildings."
+    },
+    {
+      "name": "mote-working.png",
+      "prompt": "Use case: stylized-concept. One production raster sprite for a pixel-art cyberpunk town game UI. A tiny cyan data particle. Square canvas, final intended32x32px. Bright solid central pixel-square core, simple few square pixel steps around it, a small restrained soft halo. Color #49dcd7 (cyan/teal), slightly whitecyan core, clean centered single sprite with wide genuinely transparent exterior. This is ONE minimal floating datapacket spark, NOT a scene, icon badge, text, starfield, robot, object, circuit board, container, or background. No lettering, no gradient colored opaque backdrop. Exterior must be alpha transparent, halo may feather to alpha0, center crisp and bright. Symmetric centered arrangement. Pixels should remain clear after reduction to32x32."
+    }
+  ]
+}

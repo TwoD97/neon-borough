@@ -1,3 +1,4 @@
+import {frameAsset} from "./card-state.js";
 import { skin, art, artText, mix } from "./theme-tokens.js";
 import { div } from "gpui-kit";
 import { illustratedRail } from "./illustrated-rail.js";
@@ -15,8 +16,7 @@ export function groupInsets(height=30) {
 // empty middle section repeats; corners and icon sockets never stretch.
 export function groupFrame(el,active=false,color=skin().accent,height=30,t=skin()) {
   const ink=artText(HEADER,t);
-  return illustratedRail(el,art(HEADER,t),GROUP_RAIL,height).text_color(ink.foreground)
-    .child(div().absolute().left(48).bottom(3).w(18).h(1).bg(color).opacity(active?.8:.3));
+  return illustratedRail(el,frameAsset(art(HEADER,t),active),GROUP_RAIL,height).text_color(ink.foreground);
 }
 
 // These controls sit inside the artwork's fitted sockets. Extra opaque plates

@@ -1,3 +1,4 @@
+import {notify} from "./notifications.js";
 import { skin, art, artText } from "./theme-tokens.js";
 import { panelSkin } from "./panel-skin.js";
 import { iconFor } from "./icons.js";
@@ -11,7 +12,7 @@ import { zipToDownloads, search, saveText, EDIT_LIMIT, secretRequests, fillSecre
 // computer, or send it to another machine's ~/inbox. Copies run through scp (transfer.js).
 import { View, div, svg, image } from "gpui-kit";
 import { v_flex, h_flex, Editor, EditorState, InputState, Input } from "gpui-base";
-import { spaces, panes, focused, exec, machines, readTextFile, watchFolder, pickFolder, theme, settings, notify, shared, layout, window } from "herdr";
+import { spaces, panes, focused, exec, machines, readTextFile, watchFolder, pickFolder, theme, settings, shared, layout, window} from "herdr";
 
 // Is this mod's block on screen right now (not hidden, and the shown child of every stack above it)?
 // Unknown layouts count as shown.
@@ -245,9 +246,11 @@ export default class Files extends View {
     cx.spawn(async cx => {
       try {
         await saveText(place, text, this.original);
+        notify({title:`Saved ${baseName(path)}`,body:machineName(place.machine),level:"success"});
         if (this.file === path) { this.original = text; this.dirty = false; this.saveNote = { ok: true, text: "Saved" }; }
       } catch (e) {
         if (this.file === path) this.saveNote = { ok: false, text: `Not saved: ${e?.message ?? e}` };
+        notify({title:`Could not save ${baseName(path)}`,body:"Your edits are still in the editor. Check the error and retry.",level:"error"});
       }
       this.saving = false;
       cx.notify();
@@ -285,7 +288,7 @@ export default class Files extends View {
     const full = `${this.root}/${path}`;
     if (window()?.platform === "windows" && !this.on) exec("powershell", ["-NoProfile", "-Command", "& { param($v) Set-Clipboard -Value $v }", full.replace(/\//g, "\\")]).catch(() => {});
     else exec("sh", ["-c", 'printf %s "$1" | (pbcopy 2>/dev/null || xclip -selection clipboard 2>/dev/null || wl-copy 2>/dev/null)', "copy", full]).catch(() => {});
-    notify({ title: "Path copied", body: full, level: "info", timeout: 4000 });
+    notify({ title: "Path copied", body: full, level: "info", timeout: 4000 }, {sound:false});
   }
 
   // --- Secret requests: agents ask for a value they never see (herdr-pr secret) ---------------

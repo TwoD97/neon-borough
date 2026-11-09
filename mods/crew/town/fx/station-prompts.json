@@ -1,0 +1,256 @@
+{
+  "mode": "built-in image_gen",
+  "transparent_background": true,
+  "reference_style": [
+    "mods/crew/town/gen/props/prop-vending.png",
+    "mods/crew/town/gen/houses/house-03-data-center.png"
+  ],
+  "assets": [
+    {
+      "name": "code",
+      "source": "~/.codex\\generated_images\\01a1b27f-088d-7b31-bd41-f5ea3b082049\\exec-31a4fbf2-25d6-44c1-8957-e86f4e282c8d.png",
+      "preserved_source": "generated/station-code-sheet.png",
+      "outputs": [
+        "station-code-1.png",
+        "station-code-2.png"
+      ],
+      "prompt": "Use case: stylized-concept. Asset: an original two-frame pixel-art animation sprite sheet for a polished cyberpunk town game, two equal SQUARE cells arranged horizontally, overall 2:1 aspect ratio, genuinely transparent background. A compact coding street workbench: dark gunmetal waist-high console, broad rectangular glass monitor with a nearly front-facing face, small recessed keyboard shelf, thick short pedestal and bolted feet. The monitor contains abstract cyan circuitry, small horizontal data bars and a tiny square cursor, absolutely no readable letters or numbers. Match premium detailed pixel-art town props: crisp deliberate chunky pixels, rich dark gunmetal bevels, modest cyan #49dcd7 contained glow, subtle purple-gray metal shadows, front/side three-quarter ground view with only a little top surface visible. No robots, people, text, letters, digits, floor tiles, backdrop, captions or separator line. Both cells show EXACTLY the same workstation chassis, same size, camera, x/y position within cell, physical details, grounding, screen frame and feet. Only the display contents/contained light effect changes between the two cells: frame 1 initial pulse pattern, frame 2 a clearly shifted pulse/sweep/cursor/bubble/node pattern. All animation is INSIDE the broad rectangular screen/window; no external sparks changing silhouette. Keep ample transparent margin around each object, bottom of feet aligned to the same baseline at about 94% cell height. Entire object fits inside each cell. No wispy shadows, no blurry halos, no floating pixels outside silhouette. Crisp opaque metal, transparent exterior. This is a sprite sheet, not a UI mockup.",
+      "geometry": {
+        "size": [
+          256,
+          256
+        ],
+        "source_bbox": [
+          88,
+          118,
+          793,
+          839
+        ],
+        "source_animation_patch": [
+          225,
+          195,
+          440,
+          195
+        ],
+        "alpha_bounds": [
+          18,
+          16,
+          237,
+          240
+        ],
+        "changed_bounds": [
+          60,
+          40,
+          197,
+          101
+        ],
+        "alpha_exact_between_frames": true,
+        "binary_alpha": true,
+        "chassis_outside_screen_exact": true,
+        "baseline": 240
+      },
+      "sha256": {
+        "station-code-1.png": "ea435af6b49bdb1d2259012b22ae36e08fc5f4efa6487fe60fd72285cef9f03c",
+        "station-code-2.png": "d1239ff55f4e85d459e96155cc45d6ea9db6f484ebf285e4add9d6dd3b1f3f3e"
+      }
+    },
+    {
+      "name": "test",
+      "source": "~/.codex\\generated_images\\01a1b27f-088d-7b31-bd41-f5ea3b082049\\exec-71835f66-9baf-41ee-8394-53c139d503c7.png",
+      "preserved_source": "generated/station-test-sheet.png",
+      "outputs": [
+        "station-test-1.png",
+        "station-test-2.png"
+      ],
+      "prompt": "Use case: stylized-concept. Asset: an original two-frame pixel-art animation sprite sheet for a polished cyberpunk town game, two equal SQUARE cells arranged horizontally, overall 2:1 aspect ratio, genuinely transparent background. A compact testing street workbench: dark gunmetal short lab bench, one broad rectangular front-facing glass containment window showing a single chunky flask filled with cyan liquid and small luminous bubbles; three small test indicators along the bench. Flask and bubbles stay entirely within the glass window. Match premium detailed pixel-art town props: crisp deliberate chunky pixels, rich dark gunmetal bevels, modest cyan #49dcd7 contained glow, subtle purple-gray metal shadows, front/side three-quarter ground view with only a little top surface visible. No robots, people, text, letters, digits, floor tiles, backdrop, captions or separator line. Both cells show EXACTLY the same workstation chassis, same size, camera, x/y position within cell, physical details, grounding, screen frame and feet. Only the display contents/contained light effect changes between the two cells: frame 1 initial pulse pattern, frame 2 a clearly shifted pulse/sweep/cursor/bubble/node pattern. All animation is INSIDE the broad rectangular screen/window; no external sparks changing silhouette. Keep ample transparent margin around each object, bottom of feet aligned to the same baseline at about 94% cell height. Entire object fits inside each cell. No wispy shadows, no blurry halos, no floating pixels outside silhouette. Crisp opaque metal, transparent exterior. This is a sprite sheet, not a UI mockup.",
+      "geometry": {
+        "size": [
+          256,
+          256
+        ],
+        "source_bbox": [
+          86,
+          220,
+          800,
+          795
+        ],
+        "source_animation_patch": [
+          310,
+          391,
+          390,
+          190
+        ],
+        "alpha_bounds": [
+          16,
+          60,
+          240,
+          240
+        ],
+        "changed_bounds": [
+          86,
+          114,
+          209,
+          173
+        ],
+        "alpha_exact_between_frames": true,
+        "binary_alpha": true,
+        "chassis_outside_screen_exact": true,
+        "baseline": 240
+      },
+      "sha256": {
+        "station-test-1.png": "ab65659a363a20a52568184344a0d053eb6bb11c712581671ff4ceca6c35a182",
+        "station-test-2.png": "bd5fd456a068b74d6e220008f949139eaecf4759ef56d439be91896b27b2a1f5"
+      }
+    },
+    {
+      "name": "scan",
+      "source": "~/.codex\\generated_images\\01a1b27f-088d-7b31-bd41-f5ea3b082049\\exec-67ca960a-ab6b-4abd-a474-485db326625a.png",
+      "preserved_source": "generated/station-scan-sheet.png",
+      "outputs": [
+        "station-scan-1.png",
+        "station-scan-2.png"
+      ],
+      "prompt": "Use case: stylized-concept. Asset: an original two-frame pixel-art animation sprite sheet for a polished cyberpunk town game, two equal SQUARE cells arranged horizontally, overall 2:1 aspect ratio, genuinely transparent background. A compact scanning street workstation: dark gunmetal short scanner pedestal with a broad rectangular nearly front-facing screen, small mechanical sensor arm fixed to the side and bolted feet. Within the screen a cyan circular scan grid and diagonal sweep line, no text or numbers. Match premium detailed pixel-art town props: crisp deliberate chunky pixels, rich dark gunmetal bevels, modest cyan #49dcd7 contained glow, subtle purple-gray metal shadows, front/side three-quarter ground view with only a little top surface visible. No robots, people, text, letters, digits, floor tiles, backdrop, captions or separator line. Both cells show EXACTLY the same workstation chassis, same size, camera, x/y position within cell, physical details, grounding, screen frame and feet. Only the display contents/contained light effect changes between the two cells: frame 1 initial pulse pattern, frame 2 a clearly shifted pulse/sweep/cursor/bubble/node pattern. All animation is INSIDE the broad rectangular screen/window; no external sparks changing silhouette. Keep ample transparent margin around each object, bottom of feet aligned to the same baseline at about 94% cell height. Entire object fits inside each cell. No wispy shadows, no blurry halos, no floating pixels outside silhouette. Crisp opaque metal, transparent exterior. This is a sprite sheet, not a UI mockup.",
+      "geometry": {
+        "size": [
+          256,
+          256
+        ],
+        "source_bbox": [
+          142,
+          120,
+          813,
+          826
+        ],
+        "source_animation_patch": [
+          239,
+          238,
+          330,
+          290
+        ],
+        "alpha_bounds": [
+          21,
+          16,
+          234,
+          240
+        ],
+        "changed_bounds": [
+          51,
+          53,
+          157,
+          145
+        ],
+        "alpha_exact_between_frames": true,
+        "binary_alpha": true,
+        "chassis_outside_screen_exact": true,
+        "baseline": 240
+      },
+      "sha256": {
+        "station-scan-1.png": "b2a6167d92d7023b383321721d42a0d6c50642b33b953c3bf1e5734a7c3df09c",
+        "station-scan-2.png": "0308cbcb11d7e849ec85d54944d92fc3e8445f94952070807205984cdea79caf"
+      }
+    },
+    {
+      "name": "run",
+      "source": "~/.codex\\generated_images\\01a1b27f-088d-7b31-bd41-f5ea3b082049\\exec-36a8c3c6-7910-418d-bc2f-f8cbaa35d6dc.png",
+      "preserved_source": "generated/station-run-sheet.png",
+      "outputs": [
+        "station-run-1.png",
+        "station-run-2.png"
+      ],
+      "prompt": "Use case: stylized-concept. Asset: an original two-frame pixel-art animation sprite sheet for a polished cyberpunk town game, two equal SQUARE cells arranged horizontally, overall 2:1 aspect ratio, genuinely transparent background. A compact execution street workstation: dark gunmetal squat computing terminal on thick feet with a broad rectangular nearly front-facing glass window. Inside the window a contained cyan energy column with stacked horizontal pulse bars and two parallel luminous rails, no text or numbers. Match premium detailed pixel-art town props: crisp deliberate chunky pixels, rich dark gunmetal bevels, modest cyan #49dcd7 contained glow, subtle purple-gray metal shadows, front/side three-quarter ground view with only a little top surface visible. No robots, people, text, letters, digits, floor tiles, backdrop, captions or separator line. Both cells show EXACTLY the same workstation chassis, same size, camera, x/y position within cell, physical details, grounding, screen frame and feet. Only the display contents/contained light effect changes between the two cells: frame 1 initial pulse pattern, frame 2 a clearly shifted pulse/sweep/cursor/bubble/node pattern. All animation is INSIDE the broad rectangular screen/window; no external sparks changing silhouette. Keep ample transparent margin around each object, bottom of feet aligned to the same baseline at about 94% cell height. Entire object fits inside each cell. No wispy shadows, no blurry halos, no floating pixels outside silhouette. Crisp opaque metal, transparent exterior. This is a sprite sheet, not a UI mockup.",
+      "geometry": {
+        "size": [
+          256,
+          256
+        ],
+        "source_bbox": [
+          65,
+          147,
+          822,
+          782
+        ],
+        "source_animation_patch": [
+          433,
+          300,
+          172,
+          237
+        ],
+        "alpha_bounds": [
+          16,
+          52,
+          240,
+          240
+        ],
+        "changed_bounds": [
+          125,
+          97,
+          176,
+          167
+        ],
+        "alpha_exact_between_frames": true,
+        "binary_alpha": true,
+        "chassis_outside_screen_exact": true,
+        "baseline": 240
+      },
+      "sha256": {
+        "station-run-1.png": "e1bd508e070e487fbf2a7df7dbab84ec166bb0fbbe67274fb3cab9f64691f54e",
+        "station-run-2.png": "789ed529941438e18ecb166525dfca916aebf3d88186b4c537d98819d53ccb47"
+      }
+    },
+    {
+      "name": "think",
+      "source": "~/.codex\\generated_images\\01a1b27f-088d-7b31-bd41-f5ea3b082049\\exec-83e67ec5-ceb8-40b1-a47f-f430d92e5215.png",
+      "preserved_source": "generated/station-think-sheet.png",
+      "outputs": [
+        "station-think-1.png",
+        "station-think-2.png"
+      ],
+      "prompt": "Use case: stylized-concept. Asset: an original two-frame pixel-art animation sprite sheet for a polished cyberpunk town game, two equal SQUARE cells arranged horizontally, overall 2:1 aspect ratio, genuinely transparent background. A compact planning street workstation: dark gunmetal small planning console with a broad rectangular nearly front-facing glass display on a short angled pedestal with bolted feet. Inside the glass a luminous cyan network of five small nodes linked by geometric lines, suggestive of a contained planning hologram, no text or numbers. Match premium detailed pixel-art town props: crisp deliberate chunky pixels, rich dark gunmetal bevels, modest cyan #49dcd7 contained glow, subtle purple-gray metal shadows, front/side three-quarter ground view with only a little top surface visible. No robots, people, text, letters, digits, floor tiles, backdrop, captions or separator line. Both cells show EXACTLY the same workstation chassis, same size, camera, x/y position within cell, physical details, grounding, screen frame and feet. Only the display contents/contained light effect changes between the two cells: frame 1 initial pulse pattern, frame 2 a clearly shifted pulse/sweep/cursor/bubble/node pattern. All animation is INSIDE the broad rectangular screen/window; no external sparks changing silhouette. Keep ample transparent margin around each object, bottom of feet aligned to the same baseline at about 94% cell height. Entire object fits inside each cell. No wispy shadows, no blurry halos, no floating pixels outside silhouette. Crisp opaque metal, transparent exterior. This is a sprite sheet, not a UI mockup.",
+      "geometry": {
+        "size": [
+          256,
+          256
+        ],
+        "source_bbox": [
+          61,
+          109,
+          827,
+          830
+        ],
+        "source_animation_patch": [
+          218,
+          250,
+          490,
+          270
+        ],
+        "alpha_bounds": [
+          16,
+          29,
+          240,
+          240
+        ],
+        "changed_bounds": [
+          62,
+          70,
+          205,
+          149
+        ],
+        "alpha_exact_between_frames": true,
+        "binary_alpha": true,
+        "chassis_outside_screen_exact": true,
+        "baseline": 240
+      },
+      "sha256": {
+        "station-think-1.png": "f1b86fe882e7daa72eee35ea7641ec4aa3292907c54926af1cadc856a1d27cf1",
+        "station-think-2.png": "b59379cc022f30afdb36f24e3aa8265c9ebbddc706f1f10d4ee988fc31b35515"
+      }
+    }
+  ],
+  "processing": {
+    "tool": "FFmpeg",
+    "reproduction": "generated/build-stations.py",
+    "method": "First generated cell supplies both complete chassis and alpha planes; only the selected opaque screen rectangle comes from the second generated cell. Nearest-neighbor fit within224px, pad256x256, feet baseline240, alpha cutoff110 tobinary0/255. No SVG or drawn screen art.",
+    "validation": "station-validation.json"
+  }
+}

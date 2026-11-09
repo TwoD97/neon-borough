@@ -865,10 +865,11 @@ export default class Spaces extends View {
   compact({ w, i }, t) {
     return h_flex().relative().id(`space-${w.id}`).h(36).flex_none().justify_center().items_center()
       .tooltip(`${i+1} · ${w.name}`)
-      .when(w.active, el => el.child(div().absolute().left(1).top(7).bottom(7).w(2).bg(t.accent)))
+      .when(w.active, el => el.child(div().absolute().left(1).top(4).bottom(4).w(3).bg(t.accent)))
       .hover(st => st.opacity(0.8)).on_click(() => run("space.select",{id:w.id}))
       .on_mouse_down("right", () => this.menu(w))
-      .child(this.portrait(w,t.accent,30));
+      .child(this.portrait(w,t.accent,30).opacity(w.active?1:.55))
+      .when(w.active,el=>el.child(div().absolute().right(2).bottom(2).size(5).bg(t.accent)));
   }
 
   render() {

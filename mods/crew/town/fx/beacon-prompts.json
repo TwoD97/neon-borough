@@ -1,0 +1,99 @@
+{
+  "tool": "image_gen",
+  "generated_at": "2026-11-09",
+  "assets": [
+    {
+      "state": "working",
+      "source": "generated/beacon-working-sheet.png",
+      "prompt": "Use case: stylized-concept. Asset type: a game-ready two-frame animation sprite sheet for a tiny rooftop status beacon in a cyberpunk pixel-art town. A WIDE 2:1 transparent canvas containing exactly TWO equal square cells side by side, with NO panel borders. Each cell will become a 96x96 PNG. Place the SAME tiny squat metallic technological beacon core at the EXACT center of both cells (25% canvas width,50% canvas height;75% canvas width,50% canvas height). The core is a small angular luminous lens in a dark titanium housing, about 18% of each cell width. Exactly FOUR short clean stepped pixel rays extend north/east/south/west with tiny gaps around the core. Left cell is animation frame1: short restrained rays. Right cell is frame2: same IDENTICAL core, same location/size/perspective, only the four rays become 2 logical pixels longer and brighter. All art including rays stays within the center 60% of its cell; ample empty transparent margin. Crisp hand-placed pixel-art impression, chunky square pixels, tight palette, no smooth blurred glow, no antialiasing fog. Slight game-art three-quarter view on core but rays symmetrical. Absolutely transparent alpha background, no backdrop, no ground shadow, no house, no city, no extra object, no text, no numbers, no labels, no watermark. Palette: working-status luminous CYAN #49dcd7, pale cyan highlights, navy/titanium housing. Both cells cyan. Frame2 rays brighter pale-cyan at tips.",
+      "output": [
+        "beacon-working-1.png",
+        "beacon-working-2.png"
+      ]
+    },
+    {
+      "state": "blocked",
+      "source": "generated/beacon-blocked-sheet.png",
+      "prompt": "Use case: stylized-concept. Asset type: a game-ready two-frame animation sprite sheet for a tiny rooftop status beacon in a cyberpunk pixel-art town. A WIDE 2:1 transparent canvas containing exactly TWO equal square cells side by side, with NO panel borders. Each cell will become a 96x96 PNG. Place the SAME tiny squat metallic technological beacon core at the EXACT center of both cells (25% canvas width,50% canvas height;75% canvas width,50% canvas height). The core is a small angular luminous lens in a dark titanium housing, about 18% of each cell width. Exactly FOUR short clean stepped pixel rays extend north/east/south/west with tiny gaps around the core. Left cell is animation frame1: short restrained rays. Right cell is frame2: same IDENTICAL core, same location/size/perspective, only the four rays become 2 logical pixels longer and brighter. All art including rays stays within the center 60% of its cell; ample empty transparent margin. Crisp hand-placed pixel-art impression, chunky square pixels, tight palette, no smooth blurred glow, no antialiasing fog. Slight game-art three-quarter view on core but rays symmetrical. Absolutely transparent alpha background, no backdrop, no ground shadow, no house, no city, no extra object, no text, no numbers, no labels, no watermark. Palette: waiting/blocked-status luminous AMBER #ffb347, pale golden highlights, charcoal/titanium housing. Both cells amber. Frame2 rays brighter pale-gold at tips.",
+      "output": [
+        "beacon-blocked-1.png",
+        "beacon-blocked-2.png"
+      ]
+    }
+  ],
+  "processing": "FFmpeg crop=887:887:0:0 and crop=887:887:887:0, then scale=96:96:flags=neighbor. Preserved RGBA; no painting, SVG or compositing in deliverables.",
+  "validation": {
+    "beacon-working-1.png": {
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "opaque_bounds": [
+        31,
+        31,
+        65,
+        64
+      ],
+      "bounds_center": [
+        48.0,
+        47.5
+      ],
+      "sha256": "5f0cf669da91bb9e07d9d626717e9ffe8788c998fcb4b75e7997aaddc47518b9"
+    },
+    "beacon-working-2.png": {
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "opaque_bounds": [
+        26,
+        27,
+        70,
+        68
+      ],
+      "bounds_center": [
+        48.0,
+        47.5
+      ],
+      "sha256": "893b4c717c29a417ea47484c8e03021f1b192c0d8c2011afdea3fb546edb6b1f"
+    },
+    "beacon-blocked-1.png": {
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "opaque_bounds": [
+        30,
+        29,
+        66,
+        67
+      ],
+      "bounds_center": [
+        48.0,
+        48.0
+      ],
+      "sha256": "53b402582d9477fb74c905297bc7b6325e7f7df6b6180b262c30ded7ddd6a1e7"
+    },
+    "beacon-blocked-2.png": {
+      "size": [
+        96,
+        96
+      ],
+      "mode": "RGBA",
+      "opaque_bounds": [
+        24,
+        24,
+        72,
+        72
+      ],
+      "bounds_center": [
+        48.0,
+        48.0
+      ],
+      "sha256": "64a0580683b3be885a3667180e41aed900e225a3ef7b0514a8f827714e71fe33"
+    }
+  }
+}

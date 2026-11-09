@@ -1,3 +1,4 @@
+import {notify, emitSound} from "./notifications.js";
 import { skin, art, artText } from "./theme-tokens.js";
 import { approvalFrame } from "./approval-skin.js";
 import { bevel } from "./controls.js";
@@ -12,7 +13,7 @@ import { cardActivity, isActiveCard } from "./card-activity.js";
 // on Windows. An always-on server keeps merging with this PC off. See scheduler.js.
 import { View, div, svg, image } from "gpui-kit";
 import { v_flex, h_flex, Scrollbar, TextView, v_virtual_list, TextareaState, Textarea, InputState, Input } from "gpui-base";
-import { agents, panes, spaces, machines, focused, exec, run, theme, props, settings, shared, setShared, nextCommand, notify, playSound, openOverlay, layout, window as appWindow } from "herdr";
+import { agents, panes, spaces, machines, focused, exec, run, theme, props, settings, shared, setShared, nextCommand, openOverlay, layout, window as appWindow} from "herdr";
 import { MERGE_METHODS, createGh, parseRemote, runIdFromUrl } from "./gh.js";
 import { createTracker } from "./tracker.js";
 import { translator, relative, effectiveLang } from "./i18n.js";
@@ -291,9 +292,9 @@ export default class PrFlow extends View {
     if (!before) return;
     const fresh = pending.filter((a) => !before.has(`${a.machine}:${a.id}`));
     if (shared("pr-hub.request-notifications") !== false) {
-      for (const a of fresh) notify({ title: "An agent asks you to merge", body: `${a.repo}#${a.number}${a.title ? ` · ${sanitize(a.title)}` : ""} · ${sanitize(a.by)}`, level: "warning", timeout: 20000 });
+      for (const a of fresh) notify({ title: "An agent asks you to merge", body: `${a.repo}#${a.number}${a.title ? ` · ${sanitize(a.title)}` : ""} · ${sanitize(a.by)}`, level: "warning", timeout: 10000 }, {sound:false});
     }
-    if (fresh.length && shared("pr-hub.request-sound") !== false) playSound("blocked");
+    if (fresh.length && shared("pr-hub.request-sound") !== false) emitSound("warning");
   }
 
   // Merge with your own gh: the agent never needs merge rights. A pinned commit must still be the head.

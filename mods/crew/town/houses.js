@@ -224,8 +224,8 @@ export const PROPS = [
  }
 ];
 export const STREET = "mods/crew/town/gen/street.png";
-export const SKYLINE = "mods/crew/town/gen/skyline.png";
-export const ROAD = "mods/crew/town/gen/road.png";
+export const SKYLINE = "mods/crew/town/gen/skyline-seamless.png";
+export const ROAD = "mods/crew/town/gen/road-seamless.png";
 export const PROPS2 = [
  {
   "id": "palm",

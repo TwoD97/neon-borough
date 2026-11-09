@@ -1,0 +1,54 @@
+[
+  {
+    "name": "glow-working",
+    "size": [
+      512,
+      320
+    ],
+    "alpha": [
+      0,
+      241
+    ],
+    "source": "config\\mods\\crew\\town\\fx\\generated\\glow-working-source.png",
+    "packaging": "scale=464:280:flags=lanczos,pad=512:320:24:20:color=black@0"
+  },
+  {
+    "name": "glow-blocked",
+    "size": [
+      512,
+      320
+    ],
+    "alpha": [
+      0,
+      243
+    ],
+    "source": "config\\mods\\crew\\town\\fx\\generated\\glow-blocked-source.png",
+    "packaging": "scale=464:280:flags=lanczos,pad=512:320:24:20:color=black@0"
+  },
+  {
+    "name": "glow-done",
+    "size": [
+      512,
+      320
+    ],
+    "alpha": [
+      0,
+      247
+    ],
+    "source": "config\\mods\\crew\\town\\fx\\generated\\glow-done-source.png",
+    "packaging": "scale=464:280:flags=lanczos,pad=512:320:24:20:color=black@0"
+  },
+  {
+    "name": "mote-working",
+    "size": [
+      32,
+      32
+    ],
+    "alpha": [
+      0,
+      255
+    ],
+    "source": "config\\mods\\crew\\town\\fx\\generated\\mote-working-source.png",
+    "packaging": "crop=627:627:(iw-ow)/2:(ih-oh)/2,scale=32:32:flags=lanczos"
+  }
+]

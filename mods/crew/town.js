@@ -5,14 +5,16 @@ import {skin} from "./theme-tokens.js";
 // and idle robots rest calmly. Assets: Neon Borough pack (town/).
 import { div, image } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { agents, spaces, run, shared, setShared, openOverlay } from "herdr";
+import { agents, spaces, run, shared, setShared, openOverlay, terminals } from "herdr";
 import { HOUSES, PROPS, STREET, SKYLINE, ROAD, PROPS2 } from "./town/houses.js";
 import { CHARACTERS, byId, characterOf, provider, spriteFor, stillFor, line } from "./cast.js";
 import { keyOf, inPage, pages, currentPage } from "./machines.js";
-import { workshopActivity } from "./activity.js";
+import { reportedActivity } from "./activity-data.js";
+import { beginTown, legFor, frameFor, spriteEl } from "./town-actors.js";
 import { bevel } from "./controls.js";
 
 const T = "mods/crew/town";
+const FX = `${T}/fx`;
 const HOME_SIZE = { patch: [468, 368], ghost: [375, 478], atlas: [478, 444], zip: [478, 328], nova: [464, 412], hex: [469, 403] };
 const WORD = { blocked: "NEEDS YOU", working: "WORKING", done: "COMPLETE", idle: "HOME", empty: "EMPTY PLOT" };
 const RANK = { blocked: 4, working: 3, done: 2, idle: 1 };
@@ -125,21 +127,97 @@ function packRow(homes, rowH, W, depth) {
   return { items, gaps };
 }
 
-function robotEl(view, a, x, feet, size, t) {
+const toneOf = (t, status) => status === "blocked" ? t.blocked : status === "working" ? t.working : status === "done" ? t.done : t.dim;
+const FX_STATE = { working: "working", blocked: "blocked", done: "done" };
+
+// Two-frame art (screens, sparks, flares): frame 2 fades in and out over frame 1, natively.
+function flicker(id, base, motion, period) {
+  return div().id(id).relative().size_full()
+    .child(image(`${base}-1.png`).absolute().top(0).left(0).size_full())
+    .when(motion, el => el.child(image(`${base}-2.png`).absolute().top(0).left(0).size_full()
+      .loop("opacity", { from: 0, to: 1, period, easing: "linear" })));
+}
+
+// A resident: its sprite on a status pad, a work station while it works, and a bubble when it
+// needs you or has finished. Idle residents have none of these and stroll the sidewalk.
+function robotEl(view, a, leg, feet, size, t, now, records) {
   const ch = characterOf(a.address), pv = provider(a);
-  const motion = motionFor(view);
+  const motion = motionFor(view), status = a.status, color = toneOf(t, status);
   const h = Math.round(size / STAND_FILL), w = Math.round(h * 157 / 209);
-  const src = spriteFor(a, motion);
-  const box = div().id(`tr-${a.address}`).absolute().w(w).h(h + 14).left(Math.round(x - w / 2)).top(Math.round(feet - h))
+  const moving = motion && now < leg.start + leg.dur;
+  const atHome = !moving && status !== "idle";
+  const head = Math.round(h * 0.16);
+  const act = atHome && status === "working" ? reportedActivity(a, records) : null;
+  const box = div().id(`tr-${a.address}`).absolute().w(w).h(h + 14).left(Math.round(leg.x - w / 2)).top(Math.round(feet - h))
+    // Declared on every render: a transition only animates changes made after it was in place.
+    .transition("left", moving ? { duration: Math.max(100, leg.start + leg.dur - now), easing: "linear" } : { duration: 300, easing: "ease-out" })
     .cursor_pointer()
-    .tooltip(`${ch.name} · ${pv.name} · ${a.space_name}\n${a.status === "blocked" ? "needs you" : a.status}: ${a.title || a.tab_name || ""}\n“${line(a, ch)}”`)
+    .tooltip(`${ch.name} · ${pv.name} · ${a.space_name}\n${status === "blocked" ? "needs you" : status}: ${a.title || a.tab_name || ""}${act ? `\n${act.title}` : ""}\n“${line(a, ch)}”`)
     .on_click(() => { run("layout.select", { stack: "root", child: "desktop" }); run("agent.focus", { terminal: a.address }); })
-    .on_mouse_down("right", (_e, cx) => { cx.stop_propagation(); view.profile(a.address); })
-    .child(div().absolute().bottom(12).left(Math.round(w * 0.22)).w(Math.round(w * 0.56)).h(Math.max(4, Math.round(size * 0.12))).rounded(99).bg(`${pv.color}88`))
-    .child(image(src).absolute().top(0).left(0).w(w).h(h))
-    .child(div().absolute().bottom(0).left(0).w(w).flex().justify_center()
-      .child(div().px(5).py(1).rounded(3).bg(t.popover).border_1().border_color(`${ch.color}66`).text_size(10).font_bold().text_color(t.light?t.foreground:ch.color).child(ch.name)));
+    .on_mouse_down("right", (_e, cx) => { cx.stop_propagation(); view.profile(a.address); });
+  if (atHome && FX_STATE[status]) {
+    const pw = Math.round(w * 1.5), ph = Math.round(pw * 80 / 256);
+    box.child(image(`${FX}/pad-${FX_STATE[status]}.png`).id(`pad-${a.address}`).absolute().left(Math.round((w - pw) / 2)).top(h - Math.round(ph * 0.6)).w(pw).h(ph)
+      .when(motion && status !== "done", el => el.loop("opacity", { from: 0.55, to: 1, period: status === "blocked" ? 900 : 1700 })));
+  }
+  if (act) {
+    const kind = act.source === "model" ? "think" : ["code", "test", "scan"].includes(act.kind) ? act.kind : "run";
+    const ss = Math.round(h * 0.8);
+    box.child(div().absolute().left(Math.round(w * 0.62)).top(h - ss + Math.round(h * 0.02)).size(ss)
+      .child(flicker(`station-${a.address}`, `${FX}/station-${kind}`, motion, kind === "run" ? 500 : 900)));
+  }
+  box.child(div().absolute().top(0).left(0).w(w).h(h).opacity(status === "idle" ? 0.9 : 1)
+    .child(spriteEl(view, `walker:${a.address}`, frameFor(a, leg, now, motion))));
+  if (atHome && (status === "blocked" || status === "done")) {
+    const bs = Math.round(Math.max(30, size * 0.62));
+    box.child(image(`${FX}/bubble-${status === "blocked" ? "alert" : "done"}.png`).id(`bubble-${a.address}`).absolute()
+      .left(Math.round((w - bs) / 2)).top(head - bs).size(bs)
+      .when(motion && status === "blocked", el => el.loop("top", { from: head - bs - 7, to: head - bs, period: 800, easing: "ease-out" })));
+  }
+  box.child(div().absolute().bottom(0).left(-10).w(w + 20).flex().justify_center()
+    .child(div().px(5).py(1).rounded(3).bg(t.popover).border_1()
+      .border_color(`${ch.color}44`).text_size(10).font_bold()
+      .text_color(t.light ? t.foreground : ch.color).child(ch.name)));
   return box;
+}
+
+// The house's light: a glow behind it in its status color.
+function houseGlow(view, home, b) {
+  const state = FX_STATE[home.state];
+  if (!state) return [];
+  const motion = motionFor(view);
+  // The halo art is a soft oval in the middle of its canvas: centre it on the house's feet so it
+  // spills around the walls and onto the pavement.
+  const gw = Math.round(b.w * 2.1), gh = Math.round(gw * 320 / 512);
+  return [image(`${FX}/glow-${state}.png`).id(`glow-${home.space.id}`).absolute().left(Math.round(b.x + (b.w - gw) / 2)).top(Math.round(b.y + b.h - gh * 0.58)).w(gw).h(gh)
+    .opacity(state === "done" ? 0.5 : 0.8)
+    .when(motion && state !== "done", el => el.loop("opacity", { from: 0.45, to: 1, period: state === "blocked" ? 1100 : 2800 }))];
+}
+
+// Work in progress on the house: a beacon on the roof, and data rising off it while it works.
+function houseActivity(view, home, b) {
+  const state = FX_STATE[home.state];
+  if (!state) return [];
+  const motion = motionFor(view), id = home.space.id, out = [];
+  // Light pooling on the pavement in front of the house.
+  const pw = Math.round(b.w * 1.25), ph = Math.round(pw * 0.32);
+  out.push(image(`${FX}/glow-${state}.png`).id(`pool-${id}`).absolute().left(Math.round(b.x + (b.w - pw) / 2)).top(Math.round(b.y + b.h - ph * 0.5)).w(pw).h(ph)
+    .opacity(state === "done" ? 0.6 : 0.9)
+    .when(motion && state !== "done", el => el.loop("opacity", { from: 0.6, to: 1, period: state === "blocked" ? 1100 : 2800 })));
+  if (state === "done") return out;
+  const bs = Math.round(Math.max(22, Math.min(40, b.w * 0.13)));
+  out.push(div().absolute().left(Math.round(b.x + b.w * 0.86 - bs / 2)).top(Math.round(b.y + bs * 0.05)).size(bs)
+    .child(flicker(`beacon-${id}`, `${FX}/beacon-${home.state}`, motion, home.state === "blocked" ? 700 : 1300)));
+  if (home.state === "working" && motion) {
+    const ms = Math.max(8, Math.round(b.w * 0.035));
+    [0.24, 0.5, 0.76].forEach((fx, i) => {
+      const x = Math.round(b.x + b.w * fx), top = Math.round(b.y + b.h * 0.3);
+      out.push(div().id(`mote-${id}-${i}`).absolute().left(x).top(top).size(ms)
+        .loop("top", { from: top, to: top - Math.round(b.h * 0.5), period: 3200 + i * 700, easing: "linear" })
+        .child(image(`${FX}/mote-working.png`).size_full().loop("opacity", { from: 0, to: 1, period: 1600 + i * 350 })));
+    });
+  }
+  return out;
 }
 
 function houseEls(view, it, feet, t) {
@@ -156,12 +234,8 @@ function houseEls(view, it, feet, t) {
       .on_mouse_down("right", (_e, cx) => { cx.stop_propagation(); openOverlay({ mod: "crew", kind: "dialog", width: 720, height: 520, props: { housePicker: id } }); })
       .child(image(house.file).size_full().opacity(home.state === "empty" ? 0.6 : 1)),
   ];
-  els.push(...workshopActivity(view, home, { x: hx, y: hy, w: hw, h: hh }, t));
-  const mark = (bg, fg, ch, blink) => div().id(`mark-${id}`).absolute().left(hx + hw - 18).top(hy - 4).size(20).rounded(10).bg(bg)
-    .flex().items_center().justify_center().text_size(12.5).font_bold().text_color(fg).child(ch)
-    .when(blink && motionFor(view), (el) => el.loop("opacity", { from: 0.65, to: 1, period: 2200 }));
-  if (home.state === "blocked") els.push(mark(t.surface, t.blocked, "!", true));
-  if (home.state === "done") els.push(mark(t.surface, t.done, "✓", false));
+  els.unshift(...houseGlow(view, home, { x: hx, y: hy, w: hw, h: hh }));
+  els.push(...houseActivity(view, home, { x: hx, y: hy, w: hw, h: hh }));
   // A fitted address plaque keeps names readable without a floating task bubble.
   const labelWidth=Math.max(46,Math.round(it.labelWidth ?? hw+16));
   const statusColor=home.state==="blocked"?t.blocked:home.state==="working"?t.working:home.state==="done"?t.done:t.dim;
@@ -178,7 +252,8 @@ function houseEls(view, it, feet, t) {
 // A seamless strip, repeated across the width at the given height (images keep their shape).
 function tiled(file, aspect, top, h, W, id) {
   const tw = Math.round(h * aspect), out = [];
-  for (let x = 0, n = 0; x < W; x += tw, n++) out.push(image(file).id(`${id}-${n}`).absolute().left(x).top(Math.round(top)).w(tw).h(Math.round(h)));
+  // Neighbours overlap by 2 px: image edges are filtered, and a butt joint shows a hairline.
+  for (let x = 0, n = 0; x < W; x += tw - 2, n++) out.push(image(file).id(`${id}-${n}`).absolute().left(x).top(Math.round(top)).w(tw).h(Math.round(h)));
   return out;
 }
 
@@ -259,13 +334,20 @@ export function renderTown(view, t, W, height) {
   }
   // Every resident rests at their own house. Only working sprites animate;
   // waiting gets a gentle amber signal and completion stays visible.
-  const size = Math.max(25, Math.min(58, W * 0.035));
+  // Working, waiting and finished robots stand at their own door (room for a work station);
+  // idle ones stroll their sidewalk.
+  const size = Math.max(30, Math.min(70, W * 0.04));
+  const now = Date.now(), records = terminals();
+  beginTown(view);
   const robots = [];
   for (const [row, packed] of [[0, rowBack], [1, rowFront]]) {
     for (const it of packed.items) {
-      it.home.agents.forEach((a, k) => robots.push({ a,
-        x: it.x + it.w / 2 + (k - (it.home.agents.length - 1) / 2) * Math.min(72, size * 1.35),
-        feet: g.door(row) }));
+      const n = it.home.agents.length, step = Math.min(it.w / Math.max(1, n), size * 2.1);
+      it.home.agents.forEach((a, k) => {
+        const x = it.x + it.w / 2 + (k - (n - 1) / 2) * step - size * 0.35;
+        const leg = legFor(view, a, { x, min: W * 0.04, max: W * 0.96, W, motion }, now);
+        robots.push({ a, leg, feet: g.door(row) });
+      });
     }
   }
   // Environment keeps its depth order. Residents are interactive controls and
@@ -277,7 +359,7 @@ export function renderTown(view, t, W, height) {
   layer.sort((x, y) => x.feet - y.feet);
   for (const l of layer) kids.push(...l.els);
   robots.sort((x, y) => x.feet - y.feet);
-  for (const r of robots) kids.push(robotEl(view, r.a, r.x, r.feet, size, t));
+  for (const r of robots) kids.push(robotEl(view, r.a, r.leg, r.feet, size, t, now, records));
   return { el: div().id("town-map").relative().w(W).h(g.H).flex_none().overflow_hidden().children(kids), model: m };
 }
 

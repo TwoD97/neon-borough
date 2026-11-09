@@ -30,7 +30,7 @@ export function reportedActivity(agent, records = [], now = Date.now()) {
       followup_task: ["Assigning agent work", "work"], wait_agent: ["Waiting for an agent", "work"],
       update_plan: ["Updating the plan", "work"],
     }[lead] ?? [`Using ${lead}`, "work"];
-    return {title: tools.length > 1 ? `${tools.length} tools · ${names.join(" + ")}` : known[0], kind: known[1], reported: true, source: "tool", detail: names.join("\n")};
+    return {title: names.length > 1 ? `${known[0]} +${names.length - 1}` : known[0], kind: known[1], reported: true, source: "tool", detail: names.join("\n")};
   }
   if (active.some(item => item.tool === "ModelRequest")) {
     return {title:"Generating a response", kind:"work", reported:true, source:"model", detail:"Codex reported an active model request."};

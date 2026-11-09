@@ -1,3 +1,4 @@
+import {cardState,frameAsset} from "./card-state.js";
 import {providerFrame,providerGeometry} from "./provider-skin.js";
 import {skin,art,artText,mix} from "./theme-tokens.js";
 import {townLayout} from "./town-layout.js";
@@ -20,6 +21,7 @@ import { View, div, image, svg } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
 import { agents, spaces, focused, run, theme, props, openOverlay, closeOverlay, layout, window as appWindow, setShared, shared, settings, terminals } from "herdr";
 import { renderTown, townAspect, whoList, townModel, ALL_HOUSES, setHouse } from "./town.js";
+import { spriteEl, frameFor, townTick, townFrames } from "./town-actors.js";
 import { CHARACTERS, characterOf, provider, spriteFor, still, castNew, recast, line, actOf, stepRobots } from "./cast.js";
 import { keyOf, label as machineLabel, ordered as orderMachines, inPage, currentPage, pages } from "./machines.js";
 
@@ -54,6 +56,8 @@ export default class Crew extends View {
     this.motion = true;
     // Working robots step on a shared 300 ms clock; idle residents need no redraw.
     stepRobots(cx);
+    // The town's own clock: sprite frames and walks, only while the town is on screen.
+    cx.timer.every(140, (cx) => { if (this.townShown()) townTick(this, cx, townFrames(this, this.motionOn())); });
   }
 
   profile(address) { openProfile(address); }
@@ -113,13 +117,14 @@ export default class Crew extends View {
       const cw=g.wide?g.roster-4:residentWidth,look=providerGeometry(pv,cw,t);
       const stateColor=a.status==="working"?t.working:a.status==="blocked"?t.blocked:a.status==="done"?t.done:t.dim;
       const tone=look.onLight?stateColor:mix(stateColor,"#e6edf7",.35);
-      return providerFrame(div(),pv,cw,t).id(`town-resident-${a.address}`).w(cw).h(look.height).flex_none().cursor_pointer()
+      return providerFrame(div(),pv,cw,t,a).id(`town-resident-${a.address}`).w(cw).h(look.height).flex_none().cursor_pointer()
         .tooltip(`${ch.name} · ${pv.name} · ${a.space_name||"Workspace"}\n${a.title||a.tab_name||ch.role}\n${activity.detail||activity.title}\nSelect to focus · Right-click for profile`)
         .on_click(()=>{run("layout.select",{stack:"root",child:"desktop"});run("agent.focus",{terminal:a.address});})
         .on_mouse_down("right",(_e,cx)=>{cx.stop_propagation();this.profile(a.address);})
-        .child(image(spriteFor(a,this.motionOn())).absolute()
+        .child(div().absolute()
           .left(look.portraitX-look.portraitHeight*.375).top(look.portraitY-look.portraitHeight*.5)
-          .w(look.portraitHeight*.75).h(look.portraitHeight))
+          .w(look.portraitHeight*.75).h(look.portraitHeight)
+          .child(spriteEl(this,`still:${a.address}`,frameFor(a,null,Date.now(),this.motionOn()))))
         .child(v_flex().absolute().left(look.textLeft).right(look.textRight).top(look.textTop).bottom(look.textBottom).justify_center().gap(3)
           .child(h_flex().h(13).min_w(0).gap(4).items_center()
             .child(div().flex_1().min_w(0).truncate().font_bold().text_size(11).text_color(look.onLight?mix(ch.color,"#102030",.57):ch.color).child(ch.name))
@@ -223,8 +228,8 @@ export default class Crew extends View {
             .tooltip(`${ch.name} · ${pv.name} · ${a.space_name || ""}\n${a.title || a.tab_name || ""}\nClick to focus · Right-click for profile`)
             .on_click(() => { run("layout.select", { stack: "root", child: "desktop" }); run("agent.focus", { terminal: a.address }); })
             .on_mouse_down("right", (_e, cx) => { cx.stop_propagation(); this.profile(a.address); })
-            .child(image(art("mods/crew/art/crew-component.png",t)).absolute().top(-rh*0.04).left(0).w(cw).h(rh))
-            .when(!t.light,el=>el.child(image("mods/crew/art/card-inlay-agent.svg").absolute().top(-rh*0.04).left(0).w(cw).h(rh)))
+            .child(image(frameAsset(art("mods/crew/art/crew-component.png",t),cardState(a.status).powered)).absolute().top(-rh*0.04).left(0).w(cw).h(rh))
+            .when(!t.light&&cardState(a.status).powered,el=>el.child(image("mods/crew/art/card-inlay-agent.svg").absolute().top(-rh*0.04).left(0).w(cw).h(rh)))
             .child(image(spriteFor(a,this.motionOn())).absolute().top(rh*0.20).left(cw*0.074).w(rh*0.39).h(rh*0.52))
             .child(v_flex().absolute().left(cw*0.26).right(cw*0.055).top(rh*0.16).bottom(rh*0.12).justify_center().gap(3*scale).line_height(1.1)
               .child(h_flex().items_center().gap(6*scale)
@@ -233,8 +238,7 @@ export default class Crew extends View {
                 .child(div().text_size(10*scale).text_color(tone).child(STATUS_WORD[a.status]??a.status)
                   .when(this.motionOn() && a.status === "blocked", el => el.loop("opacity", {from:0.6,to:1,period:2200}))))
               .child(div().truncate().text_size(11*scale).text_color(artText("mods/crew/art/crew-component.png",t).foreground).child(a.title||a.tab_name||ch.role))
-              .child(div().truncate().text_size(10*scale).text_color(artText("mods/crew/art/crew-component.png",t).muted).child(a.space_name||pv.name)))
-            .when(a.focused,el=>el.child(div().absolute().left(cw*0.27).bottom(rh*0.08).w(cw*0.56).h(2).bg(ch.color)));
+              .child(div().truncate().text_size(10*scale).text_color(artText("mods/crew/art/crew-component.png",t).muted).child(a.space_name||pv.name)));
         })));
   }
 

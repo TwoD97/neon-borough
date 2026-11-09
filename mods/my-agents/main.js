@@ -458,8 +458,8 @@ export default class Agents extends View {
             .hover(s => s.opacity(.85))
             .on_click(() => run("agent.focus", {terminal:a.address}))
             .on_mouse_down("right", (_e,cx) => {cx.stop_propagation();openOverlay({mod:"crew",kind:"dialog",frame:"none",width:620,height:440,props:{profile:a.address}});})
-            .child(div().absolute().left(4).top(4).w(24).h(32).child(this.robot(a, foldMotion)))
-            .child(div().absolute().right(2).bottom(3).size(5).bg(tone).border_1().border_color(skin().background)
+            .child(div().absolute().left(4).top(4).w(24).h(32).opacity(a.status === "idle" ? .65 : 1).child(this.robot(a, foldMotion)))
+            .child(div().absolute().right(2).bottom(3).w(a.status === "working" ? 12 : 5).h(5).bg(tone).border_1().border_color(skin().background)
               .when(foldMotion && a.status === "blocked", el => el.loop("opacity",{from:.55,to:1,period:2200}))));
       }
       const when = this.since(a);
@@ -495,7 +495,7 @@ export default class Agents extends View {
       const metadata = [full ? a.space_name : null, shownMachine].filter(Boolean).join(" · ");
       const activity = reportedActivity(a, all, now);
       const showActivity = activity.reported || a.status === "working" || a.status === "blocked";
-      return providerFrame(div(), pv, cw)
+      return providerFrame(div(), pv, cw, t, a)
         .id(`ag-${a.address}`).w_full().h(agentHeight).flex_none().cursor_pointer()
         .tooltip(`${ch.name} · ${pv.name} · ${state}\nConversation: ${task}\nActivity: ${activity.title}\n${metadata}\nRight-click for crew profile`)
         .on_hover((on, cx) => {
@@ -533,8 +533,7 @@ export default class Agents extends View {
           .child(h_flex().h(12*scale).min_w(0).gap(4).items_center()
             .when(Boolean(a.program?.icon), el=>el.child(icon(a.program,12*scale,look.accent)))
             .child(div().flex_1().min_w(0).truncate().text_size(10*scale).text_color(look.accent).child(pv.name))
-            .when(Boolean(when) && cw>=220, el=>el.child(div().flex_none().text_size(9*scale).text_color(look.dim).child(duration(now-when))))))
-        .when(a.focused, el=>el.child(div().absolute().left(geometry.textLeft).right(geometry.textRight).bottom(geometry.height*.16).h(1).bg(look.accent).opacity(.7)));
+            .when(Boolean(when) && cw>=220, el=>el.child(div().flex_none().text_size(9*scale).text_color(look.dim).child(duration(now-when))))));
 
 
     };

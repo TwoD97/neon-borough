@@ -1,0 +1,5 @@
+{
+  "place": "none",
+  "title": "Sounds & alerts",
+  "overlay": { "kind": "dialog", "frame": "none", "width": 0.9, "height": 0.86 }
+}

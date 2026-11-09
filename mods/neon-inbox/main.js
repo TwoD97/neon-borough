@@ -1,3 +1,4 @@
+import {notify, emitSound} from "./notifications.js";
 import { fitting } from "./fittings.js";
 import { skin, art, artText, mix } from "./theme-tokens.js";
 // Waiting for you: merge asks (herdr-pr ask) and secret requests (herdr-pr secret) from every
@@ -8,7 +9,7 @@ import { View, div, image, svg } from "gpui-kit";
 import { bevel } from "./controls.js";
 import { requestFrame } from "./request-skin.js";
 import { v_flex, h_flex, InputState, Input } from "gpui-base";
-import { exec, machines, shared, setShared, theme, notify, playSound, placement, window as appWindow, home } from "herdr";
+import { exec, machines, shared, setShared, theme, placement, window as appWindow, home} from "herdr";
 
 const POLL_MS = 10_000;       // while something waits, or soon after a change
 const QUIET_POLL_MS = 30_000; // after 2 minutes with nothing waiting
@@ -124,10 +125,10 @@ export default class Inbox extends View {
     if (!fresh.length) return;
     this.collapsed = false;
     const asks = fresh.filter(r => r.kind === "pr"), secrets = fresh.filter(r => r.kind === "secret");
-    if (asks.length && shared("pr-hub.request-notifications") !== false) notify({ title: asks.length > 1 ? `${asks.length} merge requests` : "An agent asks you to merge", body: asks.map(a => `${a.repo}#${a.number}${a.title ? ` · ${a.title}` : ""}`).join(" · "), level: "warning", timeout: 20000 });
-    if (secrets.length) notify({ title: "An agent needs a secret", body: secrets.map(r => `${r.key} → ${r.file.split(/[\\/]/).pop()} (${name(r.machine)})`).join(" · "), level: "warning", timeout: 20000 });
+    if (asks.length && shared("pr-hub.request-notifications") !== false) notify({ title: asks.length > 1 ? `${asks.length} merge requests` : "An agent asks you to merge", body: asks.map(a => `${a.repo}#${a.number}${a.title ? ` · ${a.title}` : ""}`).join(" · "), level: "warning", timeout: 10000 }, {sound:false});
+    if (secrets.length) notify({ title: "An agent needs a secret", body: secrets.map(r => `${r.key} → ${r.file.split(/[\\/]/).pop()} (${name(r.machine)})`).join(" · "), level: "warning", timeout: 10000 }, {sound:false});
     const askSound = shared("pr-hub.request-sound") !== false;
-    if (fresh.some(r => r.kind === "secret" || (askSound && (r.risk === "critical" || r.risk === "high")))) playSound("blocked");
+    if (fresh.some(r => r.kind === "secret" || (askSound && r.kind === "pr"))) emitSound("warning");
   }
 
   // Requests agents queued on machines that aren't schedulers go to the default scheduler
@@ -185,6 +186,7 @@ export default class Inbox extends View {
 
   fail(r, e, cx) {
     this.errors.set(keyOf(r), String(e?.message ?? e).replace(/^herdr-pr: /, ""));
+    notify({title:"Request could not be completed",body:"Open Waiting for you for details and retry.",level:"error"});
     this.busy = null;
     cx.notify();
   }

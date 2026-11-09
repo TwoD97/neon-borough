@@ -1,0 +1,519 @@
+{
+  "tool": "built-in image_gen",
+  "production_assets": [
+    "station-code-1.png",
+    "station-code-2.png",
+    "station-test-1.png",
+    "station-test-2.png",
+    "station-scan-1.png",
+    "station-scan-2.png",
+    "station-run-1.png",
+    "station-run-2.png",
+    "station-think-1.png",
+    "station-think-2.png",
+    "pad-working.png",
+    "pad-blocked.png",
+    "pad-done.png",
+    "glow-working.png",
+    "glow-blocked.png",
+    "glow-done.png",
+    "beacon-working-1.png",
+    "beacon-working-2.png",
+    "beacon-blocked-1.png",
+    "beacon-blocked-2.png",
+    "bubble-alert.png",
+    "bubble-done.png",
+    "mote-working.png"
+  ],
+  "colors": {
+    "working": "#49dcd7",
+    "blocked": "#ffb347",
+    "done": "#7ee787"
+  },
+  "prompt_sets": {
+    "station-prompts.json": {
+      "mode": "built-in image_gen",
+      "transparent_background": true,
+      "reference_style": [
+        "mods/crew/town/gen/props/prop-vending.png",
+        "mods/crew/town/gen/houses/house-03-data-center.png"
+      ],
+      "assets": [
+        {
+          "name": "code",
+          "source": "~/.codex\\generated_images\\01a1b27f-088d-7b31-bd41-f5ea3b082049\\exec-31a4fbf2-25d6-44c1-8957-e86f4e282c8d.png",
+          "preserved_source": "generated/station-code-sheet.png",
+          "outputs": [
+            "station-code-1.png",
+            "station-code-2.png"
+          ],
+          "prompt": "Use case: stylized-concept. Asset: an original two-frame pixel-art animation sprite sheet for a polished cyberpunk town game, two equal SQUARE cells arranged horizontally, overall 2:1 aspect ratio, genuinely transparent background. A compact coding street workbench: dark gunmetal waist-high console, broad rectangular glass monitor with a nearly front-facing face, small recessed keyboard shelf, thick short pedestal and bolted feet. The monitor contains abstract cyan circuitry, small horizontal data bars and a tiny square cursor, absolutely no readable letters or numbers. Match premium detailed pixel-art town props: crisp deliberate chunky pixels, rich dark gunmetal bevels, modest cyan #49dcd7 contained glow, subtle purple-gray metal shadows, front/side three-quarter ground view with only a little top surface visible. No robots, people, text, letters, digits, floor tiles, backdrop, captions or separator line. Both cells show EXACTLY the same workstation chassis, same size, camera, x/y position within cell, physical details, grounding, screen frame and feet. Only the display contents/contained light effect changes between the two cells: frame 1 initial pulse pattern, frame 2 a clearly shifted pulse/sweep/cursor/bubble/node pattern. All animation is INSIDE the broad rectangular screen/window; no external sparks changing silhouette. Keep ample transparent margin around each object, bottom of feet aligned to the same baseline at about 94% cell height. Entire object fits inside each cell. No wispy shadows, no blurry halos, no floating pixels outside silhouette. Crisp opaque metal, transparent exterior. This is a sprite sheet, not a UI mockup.",
+          "geometry": {
+            "size": [
+              256,
+              256
+            ],
+            "source_bbox": [
+              88,
+              118,
+              793,
+              839
+            ],
+            "source_animation_patch": [
+              225,
+              195,
+              440,
+              195
+            ],
+            "alpha_bounds": [
+              18,
+              16,
+              237,
+              240
+            ],
+            "changed_bounds": [
+              60,
+              40,
+              197,
+              101
+            ],
+            "alpha_exact_between_frames": true,
+            "binary_alpha": true,
+            "chassis_outside_screen_exact": true,
+            "baseline": 240
+          },
+          "sha256": {
+            "station-code-1.png": "ea435af6b49bdb1d2259012b22ae36e08fc5f4efa6487fe60fd72285cef9f03c",
+            "station-code-2.png": "d1239ff55f4e85d459e96155cc45d6ea9db6f484ebf285e4add9d6dd3b1f3f3e"
+          }
+        },
+        {
+          "name": "test",
+          "source": "~/.codex\\generated_images\\01a1b27f-088d-7b31-bd41-f5ea3b082049\\exec-71835f66-9baf-41ee-8394-53c139d503c7.png",
+          "preserved_source": "generated/station-test-sheet.png",
+          "outputs": [
+            "station-test-1.png",
+            "station-test-2.png"
+          ],
+          "prompt": "Use case: stylized-concept. Asset: an original two-frame pixel-art animation sprite sheet for a polished cyberpunk town game, two equal SQUARE cells arranged horizontally, overall 2:1 aspect ratio, genuinely transparent background. A compact testing street workbench: dark gunmetal short lab bench, one broad rectangular front-facing glass containment window showing a single chunky flask filled with cyan liquid and small luminous bubbles; three small test indicators along the bench. Flask and bubbles stay entirely within the glass window. Match premium detailed pixel-art town props: crisp deliberate chunky pixels, rich dark gunmetal bevels, modest cyan #49dcd7 contained glow, subtle purple-gray metal shadows, front/side three-quarter ground view with only a little top surface visible. No robots, people, text, letters, digits, floor tiles, backdrop, captions or separator line. Both cells show EXACTLY the same workstation chassis, same size, camera, x/y position within cell, physical details, grounding, screen frame and feet. Only the display contents/contained light effect changes between the two cells: frame 1 initial pulse pattern, frame 2 a clearly shifted pulse/sweep/cursor/bubble/node pattern. All animation is INSIDE the broad rectangular screen/window; no external sparks changing silhouette. Keep ample transparent margin around each object, bottom of feet aligned to the same baseline at about 94% cell height. Entire object fits inside each cell. No wispy shadows, no blurry halos, no floating pixels outside silhouette. Crisp opaque metal, transparent exterior. This is a sprite sheet, not a UI mockup.",
+          "geometry": {
+            "size": [
+              256,
+              256
+            ],
+            "source_bbox": [
+              86,
+              220,
+              800,
+              795
+            ],
+            "source_animation_patch": [
+              310,
+              391,
+              390,
+              190
+            ],
+            "alpha_bounds": [
+              16,
+              60,
+              240,
+              240
+            ],
+            "changed_bounds": [
+              86,
+              114,
+              209,
+              173
+            ],
+            "alpha_exact_between_frames": true,
+            "binary_alpha": true,
+            "chassis_outside_screen_exact": true,
+            "baseline": 240
+          },
+          "sha256": {
+            "station-test-1.png": "ab65659a363a20a52568184344a0d053eb6bb11c712581671ff4ceca6c35a182",
+            "station-test-2.png": "bd5fd456a068b74d6e220008f949139eaecf4759ef56d439be91896b27b2a1f5"
+          }
+        },
+        {
+          "name": "scan",
+          "source": "~/.codex\\generated_images\\01a1b27f-088d-7b31-bd41-f5ea3b082049\\exec-67ca960a-ab6b-4abd-a474-485db326625a.png",
+          "preserved_source": "generated/station-scan-sheet.png",
+          "outputs": [
+            "station-scan-1.png",
+            "station-scan-2.png"
+          ],
+          "prompt": "Use case: stylized-concept. Asset: an original two-frame pixel-art animation sprite sheet for a polished cyberpunk town game, two equal SQUARE cells arranged horizontally, overall 2:1 aspect ratio, genuinely transparent background. A compact scanning street workstation: dark gunmetal short scanner pedestal with a broad rectangular nearly front-facing screen, small mechanical sensor arm fixed to the side and bolted feet. Within the screen a cyan circular scan grid and diagonal sweep line, no text or numbers. Match premium detailed pixel-art town props: crisp deliberate chunky pixels, rich dark gunmetal bevels, modest cyan #49dcd7 contained glow, subtle purple-gray metal shadows, front/side three-quarter ground view with only a little top surface visible. No robots, people, text, letters, digits, floor tiles, backdrop, captions or separator line. Both cells show EXACTLY the same workstation chassis, same size, camera, x/y position within cell, physical details, grounding, screen frame and feet. Only the display contents/contained light effect changes between the two cells: frame 1 initial pulse pattern, frame 2 a clearly shifted pulse/sweep/cursor/bubble/node pattern. All animation is INSIDE the broad rectangular screen/window; no external sparks changing silhouette. Keep ample transparent margin around each object, bottom of feet aligned to the same baseline at about 94% cell height. Entire object fits inside each cell. No wispy shadows, no blurry halos, no floating pixels outside silhouette. Crisp opaque metal, transparent exterior. This is a sprite sheet, not a UI mockup.",
+          "geometry": {
+            "size": [
+              256,
+              256
+            ],
+            "source_bbox": [
+              142,
+              120,
+              813,
+              826
+            ],
+            "source_animation_patch": [
+              239,
+              238,
+              330,
+              290
+            ],
+            "alpha_bounds": [
+              21,
+              16,
+              234,
+              240
+            ],
+            "changed_bounds": [
+              51,
+              53,
+              157,
+              145
+            ],
+            "alpha_exact_between_frames": true,
+            "binary_alpha": true,
+            "chassis_outside_screen_exact": true,
+            "baseline": 240
+          },
+          "sha256": {
+            "station-scan-1.png": "b2a6167d92d7023b383321721d42a0d6c50642b33b953c3bf1e5734a7c3df09c",
+            "station-scan-2.png": "0308cbcb11d7e849ec85d54944d92fc3e8445f94952070807205984cdea79caf"
+          }
+        },
+        {
+          "name": "run",
+          "source": "~/.codex\\generated_images\\01a1b27f-088d-7b31-bd41-f5ea3b082049\\exec-36a8c3c6-7910-418d-bc2f-f8cbaa35d6dc.png",
+          "preserved_source": "generated/station-run-sheet.png",
+          "outputs": [
+            "station-run-1.png",
+            "station-run-2.png"
+          ],
+          "prompt": "Use case: stylized-concept. Asset: an original two-frame pixel-art animation sprite sheet for a polished cyberpunk town game, two equal SQUARE cells arranged horizontally, overall 2:1 aspect ratio, genuinely transparent background. A compact execution street workstation: dark gunmetal squat computing terminal on thick feet with a broad rectangular nearly front-facing glass window. Inside the window a contained cyan energy column with stacked horizontal pulse bars and two parallel luminous rails, no text or numbers. Match premium detailed pixel-art town props: crisp deliberate chunky pixels, rich dark gunmetal bevels, modest cyan #49dcd7 contained glow, subtle purple-gray metal shadows, front/side three-quarter ground view with only a little top surface visible. No robots, people, text, letters, digits, floor tiles, backdrop, captions or separator line. Both cells show EXACTLY the same workstation chassis, same size, camera, x/y position within cell, physical details, grounding, screen frame and feet. Only the display contents/contained light effect changes between the two cells: frame 1 initial pulse pattern, frame 2 a clearly shifted pulse/sweep/cursor/bubble/node pattern. All animation is INSIDE the broad rectangular screen/window; no external sparks changing silhouette. Keep ample transparent margin around each object, bottom of feet aligned to the same baseline at about 94% cell height. Entire object fits inside each cell. No wispy shadows, no blurry halos, no floating pixels outside silhouette. Crisp opaque metal, transparent exterior. This is a sprite sheet, not a UI mockup.",
+          "geometry": {
+            "size": [
+              256,
+              256
+            ],
+            "source_bbox": [
+              65,
+              147,
+              822,
+              782
+            ],
+            "source_animation_patch": [
+              433,
+              300,
+              172,
+              237
+            ],
+            "alpha_bounds": [
+              16,
+              52,
+              240,
+              240
+            ],
+            "changed_bounds": [
+              125,
+              97,
+              176,
+              167
+            ],
+            "alpha_exact_between_frames": true,
+            "binary_alpha": true,
+            "chassis_outside_screen_exact": true,
+            "baseline": 240
+          },
+          "sha256": {
+            "station-run-1.png": "e1bd508e070e487fbf2a7df7dbab84ec166bb0fbbe67274fb3cab9f64691f54e",
+            "station-run-2.png": "789ed529941438e18ecb166525dfca916aebf3d88186b4c537d98819d53ccb47"
+          }
+        },
+        {
+          "name": "think",
+          "source": "~/.codex\\generated_images\\01a1b27f-088d-7b31-bd41-f5ea3b082049\\exec-83e67ec5-ceb8-40b1-a47f-f430d92e5215.png",
+          "preserved_source": "generated/station-think-sheet.png",
+          "outputs": [
+            "station-think-1.png",
+            "station-think-2.png"
+          ],
+          "prompt": "Use case: stylized-concept. Asset: an original two-frame pixel-art animation sprite sheet for a polished cyberpunk town game, two equal SQUARE cells arranged horizontally, overall 2:1 aspect ratio, genuinely transparent background. A compact planning street workstation: dark gunmetal small planning console with a broad rectangular nearly front-facing glass display on a short angled pedestal with bolted feet. Inside the glass a luminous cyan network of five small nodes linked by geometric lines, suggestive of a contained planning hologram, no text or numbers. Match premium detailed pixel-art town props: crisp deliberate chunky pixels, rich dark gunmetal bevels, modest cyan #49dcd7 contained glow, subtle purple-gray metal shadows, front/side three-quarter ground view with only a little top surface visible. No robots, people, text, letters, digits, floor tiles, backdrop, captions or separator line. Both cells show EXACTLY the same workstation chassis, same size, camera, x/y position within cell, physical details, grounding, screen frame and feet. Only the display contents/contained light effect changes between the two cells: frame 1 initial pulse pattern, frame 2 a clearly shifted pulse/sweep/cursor/bubble/node pattern. All animation is INSIDE the broad rectangular screen/window; no external sparks changing silhouette. Keep ample transparent margin around each object, bottom of feet aligned to the same baseline at about 94% cell height. Entire object fits inside each cell. No wispy shadows, no blurry halos, no floating pixels outside silhouette. Crisp opaque metal, transparent exterior. This is a sprite sheet, not a UI mockup.",
+          "geometry": {
+            "size": [
+              256,
+              256
+            ],
+            "source_bbox": [
+              61,
+              109,
+              827,
+              830
+            ],
+            "source_animation_patch": [
+              218,
+              250,
+              490,
+              270
+            ],
+            "alpha_bounds": [
+              16,
+              29,
+              240,
+              240
+            ],
+            "changed_bounds": [
+              62,
+              70,
+              205,
+              149
+            ],
+            "alpha_exact_between_frames": true,
+            "binary_alpha": true,
+            "chassis_outside_screen_exact": true,
+            "baseline": 240
+          },
+          "sha256": {
+            "station-think-1.png": "f1b86fe882e7daa72eee35ea7641ec4aa3292907c54926af1cadc856a1d27cf1",
+            "station-think-2.png": "b59379cc022f30afdb36f24e3aa8265c9ebbddc706f1f10d4ee988fc31b35515"
+          }
+        }
+      ],
+      "processing": {
+        "tool": "FFmpeg",
+        "reproduction": "generated/build-stations.py",
+        "method": "First generated cell supplies both complete chassis and alpha planes; only the selected opaque screen rectangle comes from the second generated cell. Nearest-neighbor fit within224px, pad256x256, feet baseline240, alpha cutoff110 tobinary0/255. No SVG or drawn screen art.",
+        "validation": "station-validation.json"
+      }
+    },
+    "pad-bubble-prompts.json": {
+      "tool": "built-in image_gen",
+      "created": "2026-11-09",
+      "production": "FFmpeg crop to alpha>=110 bounds, nearest-neighbor fit with2px padding, hard alpha threshold110.",
+      "images": [
+        {
+          "name": "pad-working",
+          "color": "#49dcd7 cyan",
+          "type": "pad",
+          "state": "working",
+          "detail": "Three discrete short energy dashes around the ring, suggesting activity, no arrows.",
+          "source": "~/.codex\\generated_images\\01a1b27e-e61b-79a2-8d04-2326187d3c97\\exec-a6826b03-2b12-4d40-9703-fbc1e5d01f68.png",
+          "generated": "mods/crew/town/fx/generated/pad-working-source.png",
+          "output": "mods/crew/town/fx/pad-working.png",
+          "prompt": "Use case: stylized-concept. Asset: pad-working, a small production transparent PNG sprite for a cyberpunk pixel-art town populated by miniature robots. Generate ONLY this one effect with real transparent exterior. Crisp deliberate pixel grid, limited palette, discrete squared highlights, sharply stepped edges, retro high-quality game sprite, not smooth vector art. Main accent #49dcd7 cyan. A very low, wide elliptical holographic ground ring viewed in orthographic isometric perspective, sized to lie on existing pavement beneath a companion. Width to visible height about 3.2:1. Empty transparent center. A thin segmented dark gunmetal rim with very restrained tiny hardware pixels, luminous solid-color pixel strips. Entire ring fits in frame including lower edge. NO pavement tile, background, shadow, standing poles, object, robot, letters, or words. Final target is 256x80, so details must stay clear when reduced. Wide canvas, minimal empty padding. Three discrete short energy dashes around the ring, suggesting activity, no arrows. Clean hard alpha cutout, fully opaque visible pixels with fully transparent exterior and center; no wispy glow fringes, no blurry gradients, no haze, no drop shadow, no checkerboard. Accent highlights can look luminous through contrast but must have solid crisp boundaries. Preserve generous legibility at actual tiny UI size.",
+          "width": 256,
+          "height": 80,
+          "crop": [
+            66,
+            87,
+            2106,
+            663
+          ],
+          "filter": "format=rgba,crop=2040:576:66:87,scale=252:76:force_original_aspect_ratio=decrease:flags=neighbor,pad=256:80:(ow-iw)/2:(oh-ih)/2:color=0x00000000,lut=a='if(gte(val,110),255,0)'"
+        },
+        {
+          "name": "pad-blocked",
+          "color": "#ffb347 amber",
+          "type": "pad",
+          "state": "waiting for attention",
+          "detail": "Two short paired amber marker segments in the ring, calm and restrained.",
+          "source": "~/.codex\\generated_images\\01a1b27e-e61b-79a2-8d04-2326187d3c97\\exec-bd1b57e9-1da3-4d4e-ac7f-4b5e2b2cdc54.png",
+          "generated": "mods/crew/town/fx/generated/pad-blocked-source.png",
+          "output": "mods/crew/town/fx/pad-blocked.png",
+          "prompt": "Use case: stylized-concept. Asset: pad-blocked, a small production transparent PNG sprite for a cyberpunk pixel-art town populated by miniature robots. Generate ONLY this one effect with real transparent exterior. Crisp deliberate pixel grid, limited palette, discrete squared highlights, sharply stepped edges, retro high-quality game sprite, not smooth vector art. Main accent #ffb347 amber. A very low, wide elliptical holographic ground ring viewed in orthographic isometric perspective, sized to lie on existing pavement beneath a companion. Width to visible height about 3.2:1. Empty transparent center. A thin segmented dark gunmetal rim with very restrained tiny hardware pixels, luminous solid-color pixel strips. Entire ring fits in frame including lower edge. NO pavement tile, background, shadow, standing poles, object, robot, letters, or words. Final target is 256x80, so details must stay clear when reduced. Wide canvas, minimal empty padding. Two short paired amber marker segments in the ring, calm and restrained. Clean hard alpha cutout, fully opaque visible pixels with fully transparent exterior and center; no wispy glow fringes, no blurry gradients, no haze, no drop shadow, no checkerboard. Accent highlights can look luminous through contrast but must have solid crisp boundaries. Preserve generous legibility at actual tiny UI size.",
+          "width": 256,
+          "height": 80,
+          "crop": [
+            49,
+            110,
+            2123,
+            643
+          ],
+          "filter": "format=rgba,crop=2074:533:49:110,scale=252:76:force_original_aspect_ratio=decrease:flags=neighbor,pad=256:80:(ow-iw)/2:(oh-ih)/2:color=0x00000000,lut=a='if(gte(val,110),255,0)'"
+        },
+        {
+          "name": "pad-done",
+          "color": "#7ee787 green",
+          "type": "pad",
+          "state": "completed",
+          "detail": "A calm continuous green ring with four tiny evenly spaced square marker segments.",
+          "source": "~/.codex\\generated_images\\01a1b27e-e61b-79a2-8d04-2326187d3c97\\exec-b6a184aa-7a06-48a2-b83c-176c7cf17ee2.png",
+          "generated": "mods/crew/town/fx/generated/pad-done-source.png",
+          "output": "mods/crew/town/fx/pad-done.png",
+          "prompt": "Use case: stylized-concept. Asset: pad-done, a small production transparent PNG sprite for a cyberpunk pixel-art town populated by miniature robots. Generate ONLY this one effect with real transparent exterior. Crisp deliberate pixel grid, limited palette, discrete squared highlights, sharply stepped edges, retro high-quality game sprite, not smooth vector art. Main accent #7ee787 green. A very low, wide elliptical holographic ground ring viewed in orthographic isometric perspective, sized to lie on existing pavement beneath a companion. Width to visible height about 3.2:1. Empty transparent center. A thin segmented dark gunmetal rim with very restrained tiny hardware pixels, luminous solid-color pixel strips. Entire ring fits in frame including lower edge. NO pavement tile, background, shadow, standing poles, object, robot, letters, or words. Final target is 256x80, so details must stay clear when reduced. Wide canvas, minimal empty padding. A calm continuous green ring with four tiny evenly spaced square marker segments. Clean hard alpha cutout, fully opaque visible pixels with fully transparent exterior and center; no wispy glow fringes, no blurry gradients, no haze, no drop shadow, no checkerboard. Accent highlights can look luminous through contrast but must have solid crisp boundaries. Preserve generous legibility at actual tiny UI size.",
+          "width": 256,
+          "height": 80,
+          "crop": [
+            48,
+            64,
+            2125,
+            682
+          ],
+          "filter": "format=rgba,crop=2077:618:48:64,scale=252:76:force_original_aspect_ratio=decrease:flags=neighbor,pad=256:80:(ow-iw)/2:(oh-ih)/2:color=0x00000000,lut=a='if(gte(val,110),255,0)'"
+        },
+        {
+          "name": "bubble-alert",
+          "color": "#ffb347 amber",
+          "type": "bubble",
+          "state": "attention",
+          "detail": "Exactly one bold pixel exclamation mark (!) centered inside, including a separate square dot. No other glyph.",
+          "source": "~/.codex\\generated_images\\01a1b27e-e61b-79a2-8d04-2326187d3c97\\exec-dde8f325-89db-4ef0-bcdc-d95a41e94774.png",
+          "generated": "mods/crew/town/fx/generated/bubble-alert-source.png",
+          "output": "mods/crew/town/fx/bubble-alert.png",
+          "prompt": "Use case: stylized-concept. Asset: bubble-alert, a small production transparent PNG sprite for a cyberpunk pixel-art town populated by miniature robots. Generate ONLY this one effect with real transparent exterior. Crisp deliberate pixel grid, limited palette, discrete squared highlights, sharply stepped edges, retro high-quality game sprite, not smooth vector art. Main accent #ffb347 amber. One small angular pixel speech/status bubble with a tiny downward-pointing tail at bottom center. Compact dark navy opaque interior, stepped 2-pixel-looking colored rim, single bright legible centered glyph. Final target96x96 so use bold unmistakable glyph and simple outline. Square canvas. No second icon, robot, object, words, labels or decoration. Exactly one bold pixel exclamation mark (!) centered inside, including a separate square dot. No other glyph. Clean hard alpha cutout, fully opaque visible pixels with fully transparent exterior; no wispy glow fringes, no blurry gradients, no haze, no drop shadow, no checkerboard. Accent highlights can look luminous through contrast but must have solid crisp boundaries. Preserve generous legibility at actual tiny UI size.",
+          "width": 96,
+          "height": 96,
+          "crop": [
+            155,
+            178,
+            1099,
+            1080
+          ],
+          "filter": "format=rgba,crop=944:902:155:178,scale=92:92:force_original_aspect_ratio=decrease:flags=neighbor,pad=96:96:(ow-iw)/2:(oh-ih)/2:color=0x00000000,lut=a='if(gte(val,110),255,0)'"
+        },
+        {
+          "name": "bubble-done",
+          "color": "#7ee787 green",
+          "type": "bubble",
+          "state": "complete",
+          "detail": "Exactly one bold pixel check mark (\u2713) centered inside, immediately readable. No other glyph.",
+          "source": "~/.codex\\generated_images\\01a1b27e-e61b-79a2-8d04-2326187d3c97\\exec-856a9ca7-9d00-4fb7-b673-f76d85344f39.png",
+          "generated": "mods/crew/town/fx/generated/bubble-done-source.png",
+          "output": "mods/crew/town/fx/bubble-done.png",
+          "prompt": "Use case: stylized-concept. Asset: bubble-done, a small production transparent PNG sprite for a cyberpunk pixel-art town populated by miniature robots. Generate ONLY this one effect with real transparent exterior. Crisp deliberate pixel grid, limited palette, discrete squared highlights, sharply stepped edges, retro high-quality game sprite, not smooth vector art. Main accent #7ee787 green. One small angular pixel speech/status bubble with a tiny downward-pointing tail at bottom center. Compact dark navy opaque interior, stepped 2-pixel-looking colored rim, single bright legible centered glyph. Final target96x96 so use bold unmistakable glyph and simple outline. Square canvas. No second icon, robot, object, words, labels or decoration. Exactly one bold pixel check mark (\u2713) centered inside, immediately readable. No other glyph. Clean hard alpha cutout, fully opaque visible pixels with fully transparent exterior; no wispy glow fringes, no blurry gradients, no haze, no drop shadow, no checkerboard. Accent highlights can look luminous through contrast but must have solid crisp boundaries. Preserve generous legibility at actual tiny UI size.",
+          "width": 96,
+          "height": 96,
+          "crop": [
+            186,
+            250,
+            1069,
+            1070
+          ],
+          "filter": "format=rgba,crop=883:820:186:250,scale=92:92:force_original_aspect_ratio=decrease:flags=neighbor,pad=96:96:(ow-iw)/2:(oh-ih)/2:color=0x00000000,lut=a='if(gte(val,110),255,0)'"
+        }
+      ]
+    },
+    "beacon-prompts.json": {
+      "tool": "image_gen",
+      "generated_at": "2026-11-09",
+      "assets": [
+        {
+          "state": "working",
+          "source": "generated/beacon-working-sheet.png",
+          "prompt": "Use case: stylized-concept. Asset type: a game-ready two-frame animation sprite sheet for a tiny rooftop status beacon in a cyberpunk pixel-art town. A WIDE 2:1 transparent canvas containing exactly TWO equal square cells side by side, with NO panel borders. Each cell will become a 96x96 PNG. Place the SAME tiny squat metallic technological beacon core at the EXACT center of both cells (25% canvas width,50% canvas height;75% canvas width,50% canvas height). The core is a small angular luminous lens in a dark titanium housing, about 18% of each cell width. Exactly FOUR short clean stepped pixel rays extend north/east/south/west with tiny gaps around the core. Left cell is animation frame1: short restrained rays. Right cell is frame2: same IDENTICAL core, same location/size/perspective, only the four rays become 2 logical pixels longer and brighter. All art including rays stays within the center 60% of its cell; ample empty transparent margin. Crisp hand-placed pixel-art impression, chunky square pixels, tight palette, no smooth blurred glow, no antialiasing fog. Slight game-art three-quarter view on core but rays symmetrical. Absolutely transparent alpha background, no backdrop, no ground shadow, no house, no city, no extra object, no text, no numbers, no labels, no watermark. Palette: working-status luminous CYAN #49dcd7, pale cyan highlights, navy/titanium housing. Both cells cyan. Frame2 rays brighter pale-cyan at tips.",
+          "output": [
+            "beacon-working-1.png",
+            "beacon-working-2.png"
+          ]
+        },
+        {
+          "state": "blocked",
+          "source": "generated/beacon-blocked-sheet.png",
+          "prompt": "Use case: stylized-concept. Asset type: a game-ready two-frame animation sprite sheet for a tiny rooftop status beacon in a cyberpunk pixel-art town. A WIDE 2:1 transparent canvas containing exactly TWO equal square cells side by side, with NO panel borders. Each cell will become a 96x96 PNG. Place the SAME tiny squat metallic technological beacon core at the EXACT center of both cells (25% canvas width,50% canvas height;75% canvas width,50% canvas height). The core is a small angular luminous lens in a dark titanium housing, about 18% of each cell width. Exactly FOUR short clean stepped pixel rays extend north/east/south/west with tiny gaps around the core. Left cell is animation frame1: short restrained rays. Right cell is frame2: same IDENTICAL core, same location/size/perspective, only the four rays become 2 logical pixels longer and brighter. All art including rays stays within the center 60% of its cell; ample empty transparent margin. Crisp hand-placed pixel-art impression, chunky square pixels, tight palette, no smooth blurred glow, no antialiasing fog. Slight game-art three-quarter view on core but rays symmetrical. Absolutely transparent alpha background, no backdrop, no ground shadow, no house, no city, no extra object, no text, no numbers, no labels, no watermark. Palette: waiting/blocked-status luminous AMBER #ffb347, pale golden highlights, charcoal/titanium housing. Both cells amber. Frame2 rays brighter pale-gold at tips.",
+          "output": [
+            "beacon-blocked-1.png",
+            "beacon-blocked-2.png"
+          ]
+        }
+      ],
+      "processing": "FFmpeg crop=887:887:0:0 and crop=887:887:887:0, then scale=96:96:flags=neighbor. Preserved RGBA; no painting, SVG or compositing in deliverables.",
+      "validation": {
+        "beacon-working-1.png": {
+          "size": [
+            96,
+            96
+          ],
+          "mode": "RGBA",
+          "opaque_bounds": [
+            31,
+            31,
+            65,
+            64
+          ],
+          "bounds_center": [
+            48.0,
+            47.5
+          ],
+          "sha256": "5f0cf669da91bb9e07d9d626717e9ffe8788c998fcb4b75e7997aaddc47518b9"
+        },
+        "beacon-working-2.png": {
+          "size": [
+            96,
+            96
+          ],
+          "mode": "RGBA",
+          "opaque_bounds": [
+            26,
+            27,
+            70,
+            68
+          ],
+          "bounds_center": [
+            48.0,
+            47.5
+          ],
+          "sha256": "893b4c717c29a417ea47484c8e03021f1b192c0d8c2011afdea3fb546edb6b1f"
+        },
+        "beacon-blocked-1.png": {
+          "size": [
+            96,
+            96
+          ],
+          "mode": "RGBA",
+          "opaque_bounds": [
+            30,
+            29,
+            66,
+            67
+          ],
+          "bounds_center": [
+            48.0,
+            48.0
+          ],
+          "sha256": "53b402582d9477fb74c905297bc7b6325e7f7df6b6180b262c30ded7ddd6a1e7"
+        },
+        "beacon-blocked-2.png": {
+          "size": [
+            96,
+            96
+          ],
+          "mode": "RGBA",
+          "opaque_bounds": [
+            24,
+            24,
+            72,
+            72
+          ],
+          "bounds_center": [
+            48.0,
+            48.0
+          ],
+          "sha256": "64a0580683b3be885a3667180e41aed900e225a3ef7b0514a8f827714e71fe33"
+        }
+      }
+    },
+    "glow-prompts.json": {
+      "tool": "built-in image_gen",
+      "assets": [
+        {
+          "name": "glow-working.png",
+          "prompt": "Use case: stylized-concept. Production transparent raster VFX sprite for a cyberpunk pixel-art town game, final intended512x320px canvas (8:5 wide). Generate ONLY a soft cyan/teal light halo in hue #49dcd7, to sit BEHIND a building. No building, no ground, no ring, no source object, no scene, no text, no particles. Smooth low elliptical radial ambient glow: brightest region centered horizontally at70percent of canvasheight; faint vertical rise above it, very soft broadgroundedellipse. Inner light #49dcd7 with restrained pale center, smooth falloff in OPACITY to fully transparent at ALL outeredges. Not smoke, notfogtexture, notpaintedsurface. Transparent alpha contains the glow itself; zero opaque black/white/colored background. Keep a transparent margin on all four sides. One simple quiet colored light field suitable for blending behind detailed pixel buildings."
+        },
+        {
+          "name": "glow-blocked.png",
+          "prompt": "Use case: stylized-concept. Production transparent raster VFX sprite for a cyberpunk pixel-art town game, final intended512x320px canvas (8:5 wide). Generate ONLY a soft warm amber light halo in hue #ffb347, to sit BEHIND a building. No building, no ground, no ring, no source object, no scene, no text, no particles. Smooth low elliptical radial ambient glow: brightest region centered horizontally at70percent of canvasheight; faint vertical rise above it, very soft broadgroundedellipse. Inner light #ffb347 with restrained pale center, smooth falloff in OPACITY to fully transparent at ALL outeredges. Not smoke, notfogtexture, notpaintedsurface. Transparent alpha contains the glow itself; zero opaque black/white/colored background. Keep a transparent margin on all four sides. One simple quiet colored light field suitable for blending behind detailed pixel buildings."
+        },
+        {
+          "name": "glow-done.png",
+          "prompt": "Use case: stylized-concept. Production transparent raster VFX sprite for a cyberpunk pixel-art town game, final intended512x320px canvas (8:5 wide). Generate ONLY a soft mint green light halo in hue #7ee787, to sit BEHIND a building. No building, no ground, no ring, no source object, no scene, no text, no particles. Smooth low elliptical radial ambient glow: brightest region centered horizontally at70percent of canvasheight; faint vertical rise above it, very soft broadgroundedellipse. Inner light #7ee787 with restrained pale center, smooth falloff in OPACITY to fully transparent at ALL outeredges. Not smoke, notfogtexture, notpaintedsurface. Transparent alpha contains the glow itself; zero opaque black/white/colored background. Keep a transparent margin on all four sides. One simple quiet colored light field suitable for blending behind detailed pixel buildings."
+        },
+        {
+          "name": "mote-working.png",
+          "prompt": "Use case: stylized-concept. One production raster sprite for a pixel-art cyberpunk town game UI. A tiny cyan data particle. Square canvas, final intended32x32px. Bright solid central pixel-square core, simple few square pixel steps around it, a small restrained soft halo. Color #49dcd7 (cyan/teal), slightly whitecyan core, clean centered single sprite with wide genuinely transparent exterior. This is ONE minimal floating datapacket spark, NOT a scene, icon badge, text, starfield, robot, object, circuit board, container, or background. No lettering, no gradient colored opaque backdrop. Exterior must be alpha transparent, halo may feather to alpha0, center crisp and bright. Symmetric centered arrangement. Pixels should remain clear after reduction to32x32."
+        }
+      ]
+    }
+  },
+  "validation": "validation.json"
+}

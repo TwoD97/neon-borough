@@ -1,3 +1,4 @@
+import {frameAsset} from "./card-state.js";
 import { div, image } from "gpui-kit";
 import { skin, art, artText } from "./theme-tokens.js";
 
@@ -13,8 +14,9 @@ export function spaceGeometry(width, tree=false) {
 // Crop transparent canvas margins. The socket and end cap retain one uniform
 // scale; only the empty middle rail crops or repeats, so resizing never warps the art.
 export function spaceFrame(el, active=false, color=skin().accent, width=240, tree=false) {
-  const g=spaceGeometry(width,tree), s=g.scale;
-  const bitmap=(offset,w=2172*s)=>image(g.frame).absolute().top(-g.y*s).left(offset).w(w).h(724*s);
+  const g=spaceGeometry(width,tree), s=g.scale, t=skin();
+  // The neon channels switch in the art itself; metal and labels retain full opacity.
+  const bitmap=(offset,w=2172*s)=>image(frameAsset(g.frame,active)).absolute().top(-g.y*s).left(offset).w(w).h(724*s);
   const centerSource=600*s;
   const centerStart=800*s;
   const centerWidth=Math.max(1,width-g.left-g.right);
@@ -33,6 +35,5 @@ export function spaceFrame(el, active=false, color=skin().accent, width=240, tre
     .child(div().absolute().left(g.left).right(g.right).top(0).h(g.height).overflow_hidden()
       .children(strips))
     .child(div().absolute().right(0).top(0).w(g.right).h(g.height).overflow_hidden()
-      .child(bitmap(-(g.x+g.visible-125)*s)))
-    .when(active,e=>e.child(div().absolute().top(3).left(g.left+10).right(g.right+12).h(1).bg(color)));
+      .child(bitmap(-(g.x+g.visible-125)*s)));
 }
