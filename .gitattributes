@@ -1,0 +1,5 @@
+# Scripts run on Linux and macOS too: keep Unix line endings in every checkout.
+*.py text eol=lf
+*.sh text eol=lf
+herdr-crew text eol=lf
+herdr-pr text eol=lf
