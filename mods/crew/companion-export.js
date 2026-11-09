@@ -3,12 +3,14 @@
 import { agents, appHome, exec, home, readTextFile, terminals, writeTextFile } from "herdr";
 import { reportedActivity } from "./activity-data.js";
 import { withWait } from "./agent-wait.js";
+import { startAgentTools } from "./agent-tools.js";
 import { characterOf, paletteFor } from "./cast.js";
 
 let started=false;
 export function startCompanionExport(cx) {
   if(started)return;
   started=true;
+  startAgentTools(cx); // the same single owner keeps every machine's agent tools current
   const path=`${appHome()}/data/crew/companions.json`;
   let last="",written,published=0,inFlight=false;
   const write=async()=>{

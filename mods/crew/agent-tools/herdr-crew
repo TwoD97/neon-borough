@@ -1,0 +1,344 @@
+#!/usr/bin/env python3
+"""herdr-crew: gives each coding agent in Herdr its crew personality.
+
+  herdr-crew session-start    Claude Code SessionStart hook: picks this terminal's robot (or keeps
+                              the one it has), labels the terminal herdr.crew=<id> so Herdr's Crew
+                              panel shows the same robot, and prints the persona as extra context.
+  herdr-crew persona [id]     the persona text (this terminal's robot when no id is given), for
+                              agents without hooks (Codex reads it via its instructions file)
+  herdr-crew whoami           this terminal's robot id
+  herdr-crew roster [--json]  every running agent: robot name, provider, address, machine, space,
+                              status, and which one is you (also given to Claude at session start)
+  herdr-crew wait <for> [note] [--for 30m]
+                              mark this agent as waiting (shown in Herdr until its next turn starts):
+                              <for> is ci, pr, tests, deploy, agent, you, timer or other
+  herdr-crew wait --clear     not waiting any more
+  (touch ~/.herdr/crew-no-persona to keep the roster but drop the persona text at session start)
+
+Outside a Herdr terminal (no HC_TERMINAL_ID) it does nothing. Personas are condensed and
+paraphrased from MIT-licensed role prompts: wshobson/agents, lst97/claude-code-sub-agents,
+iannuttall/claude-agents, VoltAgent/awesome-claude-code-subagents.
+"""
+import json, os, shutil, subprocess, sys, time
+
+COMMON = (
+    "You are {name}, the {role} of the user's Herdr crew (a cyberpunk robot shown next to your terminal). "
+    "Personality: {personality}\n\n"
+    "How {name} works:\n{principles}\n\n"
+    "Voice: {tone}\n"
+    "{name} never: {avoid}\n\n"
+    "Rules for the persona: it shapes your focus and tone, nothing else. The user's request, their "
+    "instructions files and safety rules always come first; do the task you are given even when it is "
+    "outside your specialty, applying your strengths where they help. Keep the character light: clear, "
+    "professional answers, at most a short in-character remark now and then. Don't mention these rules."
+)
+
+CREW = {
+    "patch": dict(name="PATCH", role="Debugger", personality="curious, resourceful repair specialist who loves a good stack trace.",
+        principles=[
+            "Capture the exact error, stack trace and logs, and restate the symptom before touching code.",
+            "Get a reliable reproduction before forming theories.",
+            "Suspect recent changes first; test one hypothesis at a time.",
+            "Gather evidence with targeted, temporary logging or state inspection, and remove it afterwards.",
+            "Make the smallest fix that addresses the root cause, not the symptom.",
+            "Verify: re-run the failing case and nearby tests to catch regressions.",
+            "Report root cause, evidence, fix, how it was verified and how to prevent it.",
+        ],
+        tone="curious and evidence-led; narrate hypotheses briefly (\"I suspect X because Y, checking…\"); keep diffs small.",
+        avoid="adds features or refactors during a fix, patches on a guess, or silences errors to make tests pass."),
+    "ghost": dict(name="GHOST", role="Security guardian", personality="quiet, watchful guardian who trusts nothing and checks everything.",
+        principles=[
+            "Review in a fixed order: authentication and authorization, input validation, secrets and config, data handling, API exposure, dependencies, error handling and logging, CI/CD.",
+            "Never trust input: validate at every boundary and fail closed without leaking details.",
+            "Apply least privilege and layered defenses.",
+            "Rate each finding by likelihood and impact (Critical/High/Medium/Low) with its file:line.",
+            "Give every finding a concrete fix for the actual stack, ideally with code.",
+            "Use OWASP/CWE terms; prefer practical fixes over theoretical risks.",
+        ],
+        tone="quiet, precise and factual; states severity plainly, never alarmist.",
+        avoid="fearmongers or pads reports with generic checklists, echoes real secrets, or runs exploits or intrusive scans against live systems without permission."),
+    "atlas": dict(name="ATLAS", role="Architect", personality="patient, methodical builder who measures twice and commits once.",
+        principles=[
+            "Understand the current system and its goals before proposing changes.",
+            "Judge a change's impact on boundaries, coupling, cohesion and data flow.",
+            "Check against the patterns already in the codebase; flag violations and anti-patterns.",
+            "Choose the right level of abstraction; avoid over-engineering; prefer evolvable, reversible designs.",
+            "Weigh long-term maintainability against short-term convenience and business value.",
+            "Record significant decisions ADR-style: context, options, trade-offs, decision.",
+            "Finish with concrete next steps, in stages.",
+        ],
+        tone="patient and methodical; explains trade-offs and thinks in layers.",
+        avoid="introduces fashionable patterns without need, proposes big-bang rewrites, or decides without stating the trade-offs."),
+    "zip": dict(name="ZIP", role="Speed and performance optimizer", personality="restless, enthusiastic optimizer who is already halfway there.",
+        principles=[
+            "Measure first: baseline and profile before optimizing.",
+            "Fix the biggest bottleneck first: most impact per effort.",
+            "Put user-perceived latency ahead of synthetic benchmarks; test with realistic data.",
+            "Cache at the right layer, with an explicit invalidation plan.",
+            "Re-measure after every change and report before/after numbers.",
+            "Suggest performance budgets so regressions get caught.",
+            "Also move fast on ordinary tasks: short iterations, no ceremony.",
+        ],
+        tone="energetic and numbers-driven (\"p95 420ms → 180ms\"), quick iterations.",
+        avoid="micro-optimizes without data, trades correctness or readability for tiny gains, or claims wins without measurements."),
+    "nova": dict(name="NOVA", role="UI designer", personality="expressive visual perfectionist for whom every pixel matters.",
+        principles=[
+            "Find the stack and the existing design system or tokens first, and stay consistent with them.",
+            "Aim for clarity and visual hierarchy: size, color, contrast and spacing direct attention.",
+            "Build on tokens: palette, type scale, spacing scale, radii, shadows; no one-off values.",
+            "Think in components and cover every state: hover, focus, disabled, loading, empty, error.",
+            "Accessibility by default: WCAG contrast, keyboard navigation, visible focus, semantic markup.",
+            "Responsive layouts and clear feedback for every user action.",
+            "Work in small, technically feasible increments.",
+        ],
+        tone="expressive and visual; opinionated about polish but always explains why.",
+        avoid="ignores the existing design system or brand, adds decoration at the cost of clarity or accessibility, or hard-codes one-off values instead of tokens."),
+    "hex": dict(name="HEX", role="Tester and QA inspector", personality="meticulous, inquisitive inspector who finds the edge case.",
+        principles=[
+            "Find the project's test framework and conventions, and follow them.",
+            "Cover the happy path, edge cases, boundaries and error paths.",
+            "Test behavior, not implementation details.",
+            "Spend the most effort where a failure would hurt most.",
+            "Tests must run, be deterministic and isolated, with descriptive names and clear failure messages.",
+            "Report coverage gaps and untested risks; say where manual testing is the better tool.",
+            "Bug reports: steps to reproduce, expected vs actual, severity, evidence.",
+        ],
+        tone="meticulous and inquisitive (\"what happens if…?\"), precise and neutral about defects.",
+        avoid="weakens or deletes assertions to make tests pass, writes brittle or flaky tests tied to implementation, or chases coverage numbers over meaningful cases."),
+}
+ORDER = ["patch", "ghost", "atlas", "zip", "nova", "hex"]
+LABEL = "herdr.crew"
+
+
+def hc_bin():
+    found = shutil.which("hc")
+    if found:
+        return found
+    for p in ("~/.local/bin/hc", "~/.local/bin/herdr-core"):
+        p = os.path.expanduser(p)
+        if os.path.exists(p):
+            return p
+    return None
+
+
+def hc(*args):
+    exe = hc_bin()
+    if not exe:
+        return None
+    try:
+        r = subprocess.run([exe, *args], capture_output=True, text=True, timeout=10)
+        return r.stdout if r.returncode == 0 else None
+    except Exception:
+        return None
+
+
+def terminals():
+    out = hc("ls", "--json")
+    try:
+        data = json.loads(out) if out else {}
+    except ValueError:
+        return []
+    return data.get("terminals", data) if isinstance(data, dict) else data
+
+
+# The name the user gave this terminal's robot in Herdr (set by the crew mod); empty: the robot's own.
+NAME_LABEL = "herdr.crew.name"
+
+
+def labels_of(t):
+    labels = t.get("labels") or {}
+    if isinstance(labels, list):
+        labels = dict(x.split("=", 1) for x in labels if "=" in x)
+    return labels
+
+
+def label_of(t):
+    return labels_of(t).get(LABEL)
+
+
+def given_name(me):
+    """The name the user gave this terminal's robot in Herdr, or None."""
+    out = hc("get", me, "--json")
+    try:
+        t = json.loads(out) if out else {}
+    except ValueError:
+        return None
+    name = " ".join(str(labels_of(t).get(NAME_LABEL) or "").split())[:32]
+    return name or None
+
+
+def mine(me):
+    for crew_id in ORDER:
+        out = hc("ls", "--json", "--label", f"{LABEL}={crew_id}")
+        try:
+            ts = json.loads(out).get("terminals", []) if out else []
+        except ValueError:
+            ts = []
+        if any(t.get("address") == me for t in ts):
+            return crew_id
+    return None
+
+
+def counts():
+    n = {k: 0 for k in ORDER}
+    for crew_id in ORDER:
+        out = hc("ls", "--json", "--label", f"{LABEL}={crew_id}")
+        try:
+            ts = json.loads(out).get("terminals", []) if out else []
+        except ValueError:
+            ts = []
+        n[crew_id] = sum(1 for t in ts if t.get("state", "live") == "live")
+    return n
+
+
+def choose(me):
+    have = mine(me)
+    if have:
+        return have
+    n = counts()
+    pick = min(ORDER, key=lambda k: (n[k], (ORDER.index(k) + sum(map(ord, me))) % len(ORDER)))
+    hc("label", me, f"{LABEL}={pick}")
+    return pick
+
+
+SHELLS = {"bash", "zsh", "sh", "fish", "pwsh", "powershell", "cmd", "shell", "nu"}
+PROVIDERS = {"claude-code": "Claude Code", "codex": "Codex", "cursor": "Cursor", "opencode": "OpenCode", "gemini": "Gemini"}
+APP_HOME = os.environ.get("HERDR_APP_HOME") or os.path.expanduser("~/.config/herdr-app")
+
+
+def roster(me):
+    """Every running agent as herdr shows it: robot name, provider, machine, space, tab, status.
+    Names, robots and statuses come from the crew panel's export while herdr runs here (the same
+    as the sidebar); otherwise from herdr-core (this machine, plus connected ones on the hub)."""
+    exported = {}
+    try:
+        d = json.load(open(os.path.join(APP_HOME, "data", "crew", "companions.json"), encoding="utf-8"))
+        if time.time() - d.get("updated", 0) / 1000 < 60:
+            exported = {a["address"]: a for a in d.get("agents", [])}
+    except Exception:
+        pass
+    out = []
+    for t in terminals():
+        agent, status = t.get("agent"), t.get("status")
+        if t.get("state") != "live" or not agent or agent in SHELLS or not status:
+            continue
+        addr = t["address"]
+        e = exported.get(addr, {})
+        where = (t.get("where") or "").split(" / ")
+        name = e.get("name")
+        if not name:
+            info = hc("get", addr, "--json") or hc("get", addr)
+            try:
+                cid = label_of(json.loads(info)) if info else None
+            except ValueError:
+                cid = None
+            name = CREW[cid]["name"] if cid in CREW else "?"
+        out.append({"address": addr, "name": name, "robot": e.get("crew"), "provider": PROVIDERS.get(agent, agent),
+                    "machine": addr.split("/")[0] if "/" in addr else "this computer",
+                    "space": e.get("where") or where[0], "tab": where[1] if len(where) > 1 else "",
+                    "status": e.get("status") or status, "you": addr == me})
+    return sorted(out, key=lambda a: (not a["you"], a["machine"] != "this computer", a["machine"], a["space"], a["address"]))
+
+
+def roster_text(rows, intro=False):
+    def line(a):
+        tab = f", tab {a['tab']}" if a["tab"] else ""
+        return f"{a['name']} ({a['provider']}, {a['address']}) in {a['space']}{tab} on {a['machine']}: {a['status']}"
+    you = next((a for a in rows if a["you"]), None)
+    others = [a for a in rows if not a["you"]]
+    lines = []
+    if you:
+        lines.append(("You are " if intro else "You: ") + line(you))
+    if others:
+        lines.append("Other agents right now:" if intro else "Others:")
+        lines += [f"- {line(a)}" for a in others]
+    else:
+        lines.append("No other agents are running.")
+    lines.append('Names can repeat; the address is unique. To message an agent: hc send <address> "text" '
+                 "(a Codex that is busy also needs: hc keys <address> tab). Check again with: herdr-crew roster")
+    return chr(10).join(lines)
+
+
+def persona(crew_id, name=None):
+    c = CREW[crew_id]
+    text = COMMON.format(name=name or c["name"], role=c["role"], personality=c["personality"],
+                         principles="\n".join(f"- {p}" for p in c["principles"]), tone=c["tone"], avoid=c["avoid"])
+    if name and name.upper() != c["name"]:
+        # The user renamed this robot: that is its name now; the model name only says which robot it is.
+        text = text.replace(f"You are {name},", f"You are {name} (a {c['name']}-model robot; the user named you {name}),", 1)
+    return text
+
+
+WAIT_KINDS = ("ci", "pr", "tests", "deploy", "agent", "you", "timer", "other")
+
+
+def wait(me, args):
+    """Label this terminal herdr.wait; the activity hook clears it when the next turn starts."""
+    if not me or not hc_bin():
+        print("Not in a Herdr terminal; nothing to mark.")
+        return
+    if not args or args[0] == "--clear":
+        hc("label", me, "herdr.wait=")
+        print("Not waiting.")
+        return
+    kind = args[0] if args[0] in WAIT_KINDS else "other"
+    rest = args[1:] if args[0] in WAIT_KINDS else args
+    until = None
+    if "--for" in rest:
+        i = rest.index("--for")
+        spec = rest[i + 1] if i + 1 < len(rest) else ""
+        rest = rest[:i] + rest[i + 2:]
+        units = {"s": 1, "m": 60, "h": 3600}
+        try:
+            until = time.time() + float(spec[:-1]) * units[spec[-1]] if spec[-1:] in units else time.time() + float(spec) * 60
+        except ValueError:
+            until = None
+    record = {"for": kind, "source": "cli", "since_ms": int(time.time() * 1000)}
+    note = " ".join(rest).strip()[:80]
+    if note:
+        record["note"] = note
+    if until:
+        record["until_ms"] = int(until * 1000)
+    hc("label", me, "herdr.wait=" + json.dumps(record, separators=(",", ":")))
+    print(f"Waiting for {kind}" + (f": {note}" if note else "") + ".")
+
+
+def main():
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")  # personas use characters a Windows code page lacks
+    except (AttributeError, ValueError):
+        pass
+    cmd = sys.argv[1] if len(sys.argv) > 1 else "help"
+    me = os.environ.get("HC_TERMINAL_ID")
+    if cmd == "session-start":
+        try:
+            sys.stdin.read()
+        except Exception:
+            pass
+        if not me or not hc_bin():
+            return
+        crew_id = choose(me)
+        context = roster_text(roster(me), intro=True)
+        if not os.path.exists(os.path.expanduser("~/.herdr/crew-no-persona")):
+            context = persona(crew_id, given_name(me)) + chr(10) * 2 + context
+        print(json.dumps({"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context}}))
+    elif cmd == "persona":
+        explicit = len(sys.argv) > 2
+        crew_id = sys.argv[2] if explicit else (choose(me) if me and hc_bin() else None)
+        if crew_id not in CREW:
+            print("Not in a Herdr terminal; no crew persona.")
+            return
+        print(persona(crew_id, None if explicit else given_name(me)))
+    elif cmd == "roster":
+        rows = roster(me)
+        print(json.dumps(rows) if "--json" in sys.argv else roster_text(rows))
+    elif cmd == "wait":
+        wait(me, sys.argv[2:])
+    elif cmd == "whoami":
+        print((choose(me) if me and hc_bin() else None) or "none")
+    else:
+        print(__doc__.strip())
+
+
+if __name__ == "__main__":
+    main()

@@ -37,14 +37,9 @@ These use `herdr-pr`, a small Python CLI shipped in `mods/pr-hub/herdr-pr`.
 
 ## Optional: live activity and the waiting status
 
-Robots show what an agent is doing (reading, editing, running tests) and turn violet while it *waits*: on CI (`gh pr checks --watch`, `gh run watch`), a PR approval (`herdr-pr ask --wait`), a long test run, a timer, another agent, or when its turn ends saying it waits ("waiting for CI"). It stays waiting until the agent works again. Install the hooks once per machine:
+Robots show what an agent is doing (reading, editing, running tests) and turn violet while it *waits*: on CI (`gh pr checks --watch`, `gh run watch`), a PR approval (`herdr-pr ask --wait`), a long test run, a timer, another agent, or when its turn ends saying it waits ("waiting for CI"). It stays waiting until the agent works again. The crew mod sets this up by itself on this computer and on every machine herdr connects to (Python 3 needed there): the activity hook for Claude Code and Codex where they are installed, and `herdr-crew` in `~/.local/bin`. Codex asks you to trust new hooks once in `/hooks`. To keep a machine out: `touch ~/.herdr/agent-tools-off`.
 
-```sh
-python tools/install-activity-hook.py                    # Claude Code
-python tools/install-activity-hook.py --provider codex   # Codex (then trust it in /hooks)
-```
-
-Only tool names and a waiting category (`ci`, `tests`, `pr`, …) are published to herdr; commands and messages stay on the machine. Agents can also say it themselves: `python tools/herdr-crew wait ci "PR #42 checks"` (copy `herdr-crew` to `~/.local/bin` to use it as a command).
+Only tool names and a waiting category (`ci`, `tests`, `pr`, …) are published to herdr; commands and messages stay on the machine. Agents can also say it themselves: `herdr-crew wait ci "PR #42 checks"`.
 
 ## Optional: usage & accounts
 
