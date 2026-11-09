@@ -1,3 +1,4 @@
+import { compactCards, densityToggle } from "./card-density.js";
 import { skin, art, artText, luminance } from "./theme-tokens.js";
 import { panelSkin } from "./panel-skin.js";
 import { bevel } from "./controls.js";
@@ -19,6 +20,7 @@ import { LOCAL, keyOf, machineOf, label, names, rename, ordered as orderMachines
   pages, currentPage, inPage, savePage, newPageId, deletePage, movePage, togglePageMachine } from "./machines.js";
 import { withWait } from "./agent-wait.js";
 import { STATUS_WORD } from "./wait-presentation.js";
+import { pathLabel } from "./path-label.js";
 import { ICONS } from "./icons.js";
 
 // A space's icon (Pixelarticons, in icons/pixelart/), chosen in the picker; stored as shared "space.icons".
@@ -43,7 +45,7 @@ function place(s, ps) {
   const tabs = new Set((s.tabs ?? []).map((c) => c.id));
   return ps.find((p) => tabs.has(p.tab) && p.cwd)?.cwd || s.folder;
 }
-const rowHeight = ({ tree }) => (tree ? 60 : 68);
+const rowHeight = ({ tree }) => compactCards() ? (tree ? 44 : 48) : (tree ? 64 : 72);
 const where = (s, ps) => JSON.stringify([s.machine ?? null, place(s, ps)]);
 const base = (path) => path.replace(/\/+$/, "").split("/").pop();
 // Changes made outside Herdr (an editor's save, a commit in another app): looked
@@ -368,13 +370,13 @@ export default class Spaces extends View {
   drawer(id, children, height, open) {
     return div().id(id).relative().min_w(0).h(open ? height : 0).flex_none().overflow_hidden()
       .when(shared("neon.motion") !== false, el => el.transition("height", {duration: 220, easing: "ease-in-out"}))
-      .child(v_flex().id(`${id}-track`).absolute().left(0).right(0).top(open ? 0 : -10).h(height).pt(5).gap(5)
+      .child(v_flex().id(`${id}-track`).absolute().left(0).right(0).top(open ? 0 : -10).h(height).pt(8).gap(8)
         .when(shared("neon.motion") !== false, el => el.transition("top", {duration: 220, easing: "ease-in-out"}))
         .children(children));
   }
 
   spaceCards(rows, t, compact) {
-    if (compact) return { cards: rows.map(r => this.compact(r, t)), height: rows.length * 36 + Math.max(0, rows.length - 1) * 5 };
+    if (compact) return { cards: rows.map(r => this.compact(r, t)), height: rows.length * 36 + Math.max(0, rows.length - 1) * 8 };
     const folded = new Set(shared("my-spaces.worktrees.folded") ?? []);
     const cards = [];
     let height = 0;
@@ -383,13 +385,13 @@ export default class Spaces extends View {
       const kids = [];
       while (rows[i + 1]?.parentId === parent.w.id) kids.push(rows[++i]);
       const open = !folded.has(parent.w.id);
-      const childHeight = kids.reduce((h, r) => h + rowHeight(r) + 5, 0);
+      const childHeight = kids.reduce((h, r) => h + rowHeight(r) + 8, 0);
       const card = this.row({...parent, childCount: kids.length, treeOpen: open}, t);
       cards.push(kids.length ? v_flex().id(`tree-family-${parent.w.id}`).min_w(0).flex_none()
         .child(card).child(this.drawer(`tree-drawer-${parent.w.id}`, kids.map(r => this.row(r, t)), childHeight, open)) : card);
       height += rowHeight(parent) + (kids.length && open ? childHeight : 0);
     }
-    return {cards, height: height + Math.max(0, cards.length - 1) * 5};
+    return {cards, height: height + Math.max(0, cards.length - 1) * 8};
   }
 
   // The rows, under a header per machine once one isn't this computer.
@@ -423,7 +425,7 @@ export default class Spaces extends View {
     // A control inside the header must not start a drag or fold the machine.
     const still = (el) => el.on_mouse_down("left", (_e, cx) => cx.stop_propagation());
     const compactHeader = (find(layout(), "sidebar")?.size?.px ?? 268) < 242;
-    const insets=groupInsets(30);
+    const insets=groupInsets(32);
     return keys.flatMap((key, ki) => {
       const m = machineOf(key);
       const mine = rows.filter((r) => keyOf(r.w.machine) === key);
@@ -434,7 +436,7 @@ export default class Spaces extends View {
       const folded = foldedSet.has(key);
       // Folded: how many spaces, and the most urgent thing in them.
       const top = mine.reduce((best, r) => ((RANK[r.w.status] ?? 0) > (RANK[best] ?? 0) ? r.w.status : best), null);
-      const head = (collapsed ? h_flex().relative().justify_center() : groupFrame(h_flex(), !folded, connected ? skin().accent : skin().dim)).id(`machine-${key}`).h(collapsed ? 25 : 30).flex_none().pl(collapsed ? 0 : insets.left).pr(collapsed ? 0 : insets.right).gap(compactHeader ? 2 : 7).items_center().text_size(11).text_color(t.muted)
+      const head = (collapsed ? h_flex().relative().justify_center() : groupFrame(h_flex(), !folded, connected ? skin().accent : skin().dim,32)).id(`machine-${key}`).h(collapsed ? 28 : 32).flex_none().pl(collapsed ? 0 : insets.left).pr(collapsed ? 0 : insets.right).gap(4).items_center().text_size(11).text_color(t.muted)
         .when(collapsed, el => el.tooltip(`${label(key)} · ${mine.length} spaces\n${folded ? "Expand" : "Collapse"} · Right-click for machine actions`))
         .when(!collapsed && compactHeader, el => el.tooltip(`${label(key)} · ${mine.length} spaces · ${connected ? "Connected" : "Disconnected"}`))
         .cursor_pointer().hover(s => s.text_color(t.foreground))
@@ -463,10 +465,9 @@ export default class Spaces extends View {
               .tooltip(repair?.error || "This machine was rebuilt or replaced. Click to connect to the new one.")
               .on_click((_e, cx) => { cx.stop_propagation(); this.reconnect(machine, cx); })
               .child(repair?.busy ? "Connecting…" : "Connect"))))
-          .when(connected, el => el.child(still(div().id(`machine-add-${key}`).flex_none().px(compactHeader ? 3 : 4).rounded(4)).hover(s => s.bg(t.hover).text_color(t.foreground))
-            .on_click((_e, cx) => { cx.stop_propagation(); run("space.new", { machine: m ?? "" }); }).child("+")))
-          .when(!compactHeader, el => el.child(div().w(3).h(10).flex_none().bg(connected ? t.accent : t.dim).tooltip(connected ? "Connected" : "Disconnected")))
-          .child(groupWell(svg(`mods/crew/icons/chevron-${folded ? "right" : "down"}.svg`).size(12).text_color(skin().accent),20,18).ml(compactHeader ? 10 : 12)));
+          .when(connected, el => el.child(still(div().id(`machine-add-${key}`).flex_none().size(24).flex().items_center().justify_center().rounded(4).tooltip("New space")).hover(s => s.bg(t.hover).text_color(t.foreground))
+            .on_click((_e, cx) => { cx.stop_propagation(); run("space.new", { machine: m ?? "" }); }).child(svg("mods/crew/icons/plus.svg").size(12))))
+          .child(groupWell(svg(`mods/crew/icons/chevron-${folded ? "right" : "down"}.svg`).size(12).text_color(skin().accent),24,24).ml(8)));
       const empty = h_flex().id(`machine-new-${key}`).h(28).flex_none().px(8).gap(7).items_center().rounded(7)
         .text_size(12).text_color(t.dim).hover(s => s.bg(t.hover).text_color(t.foreground))
         .on_click(() => run("space.new", { machine: m ?? "" }))
@@ -474,7 +475,7 @@ export default class Spaces extends View {
       if (!collapsed && rebuilt) return [head];
       const body = mine.length ? this.spaceCards(mine, t, collapsed) : {cards: [loading(m) ? loadingRow(m) : empty], height: 28};
       return [v_flex().id(`machine-family-${key}`).min_w(0).flex_none().child(head)
-        .child(this.drawer(`machine-drawer-${key}`, body.cards, body.height + 5, !folded))];
+        .child(this.drawer(`machine-drawer-${key}`, body.cards, body.height + 8, !folded))];
     });
   }
 
@@ -547,7 +548,7 @@ export default class Spaces extends View {
     const others = list.filter((k) => k !== key);
     const folded = this.folded;
     const real = key === LOCAL ? "This computer" : key;
-    const items = [["Rename…", "square-pen", () => openOverlay({ mod: "my-spaces", kind: "dialog", width: 400, height: 230, props: { rename: key } })]];
+    const items = [["Rename…", "square-pen", () => openOverlay({ mod: "my-spaces", kind: "dialog", frame: "none", width: 440, height: 300, props: { rename: key } })]];
     if (names()[key]) items.push([`Real name again (${real})`, "x", () => rename(key, "")]);
     items.push(["Move up", "arrow-up", i > 0 ? () => moveMachine(key, -1, keys) : null, true]);
     items.push(["Move down", "arrow-down", i >= 0 && i < list.length - 1 ? () => moveMachine(key, 1, keys) : null]);
@@ -638,7 +639,7 @@ export default class Spaces extends View {
   // ---- Pages.
 
   editPage(id) {
-    openOverlay({ mod: "my-spaces", kind: "dialog", width: 420, height: 250 + 34 * (this.keys?.length ?? 1), props: { pageEdit: id, keys: this.keys ?? [LOCAL] } });
+    openOverlay({ mod: "my-spaces", kind: "dialog", frame: "none", width: 460, height: Math.min(620,300 + 44 * (this.keys?.length ?? 1)), props: { pageEdit: id, keys: this.keys ?? [LOCAL] } });
   }
 
   newPage() {
@@ -698,57 +699,63 @@ export default class Spaces extends View {
         .child(svg("mods/crew/icons/plus.svg").size(12)));
   }
 
+  dialogButton(id, text, kind, action, t) {
+    return bevel(h_flex().id(id).h(32).px(16).items_center().flex_none(),kind === "primary",t)
+      .text_size(12).text_color(kind === "danger" ? t.danger : kind === "primary" ? t.accent : t.muted)
+      .hover(st=>st.text_color(kind === "danger" ? t.danger : t.foreground)).on_click(action).child(text);
+  }
+
+  dialogField(t) {
+    return bevel(h_flex().w_full().h(40).flex_none().p(4).items_center(),this.inputFocused,t)
+      .cursor_text().child(Input.new(this.input).w_full().h(32).px(8).rounded(0).border(0)
+        .bg(this.inputFocused?t.selected:t.raised).text_color(t.foreground).text_size(13));
+  }
+
+  dialogTitle(title, icon, t) {
+    return h_flex().h(24).flex_none().gap(12).items_center()
+      .child(svg(`mods/crew/icons/${icon}.svg`).size(20).text_color(t.accent))
+      .child(div().flex_1().min_w(0).truncate().text_size(17).font_semibold().child(title))
+      .child(div().text_size(11).text_color(t.muted).child("Esc"));
+  }
+
   pageEditView(t) {
     const id = props().pageEdit, keys = props().keys ?? [LOCAL];
-    const exists = pages().some((x) => x.id === id);
-    const button = (bid, text, kind, action) => h_flex().id(bid).h(32).px(14).items_center().rounded(8)
-      .border_1().border_color(kind === "primary" ? t.solid : t.input).bg(kind === "primary" ? t.solid : t.raised)
-      .text_color(kind === "primary" ? t.solid_foreground : kind === "danger" ? t.ansi1 : t.foreground).text_size(12.5).font_medium().cursor_pointer()
-      .hover((st) => st.opacity(0.88)).on_click(action).child(text);
-    return v_flex().id("page-edit").track_focus(this.handle)
-      .on_key_down((e, cx) => { if (e.key === "escape") { closeOverlay(props().overlay); cx.stop_propagation(); } })
-      .w_full().min_h(0).p(18).bg(t.popover).text_color(t.foreground)
-      .child(h_flex().items_center()
-        .child(div().flex_1().text_size(15).font_semibold().child(exists ? "Edit page" : "New page"))
-        .child(div().text_size(11).text_color(t.dim).child("Esc")))
-      .child(div().pt(16).pb(7).text_size(11.5).text_color(t.dim).child("Name"))
-      .child(Input.new(this.input).h(36).px(10).rounded(9).border_1().border_color(this.inputFocused ? t.accent : t.input).bg(t.background).text_size(12.8).text_color(t.foreground))
-      .child(div().pt(14).pb(6).text_size(11.5).text_color(t.dim).child("Machines on this page (a machine can be on several)"))
-      .child(v_flex().gap(2).children(keys.map((k) => {
-        const on = this.picked.has(k);
-        return h_flex().id(`pe-${k}`).h(32).px(8).gap(9).items_center().rounded(7).cursor_pointer().hover((st) => st.bg(t.hover))
-          .on_click((_e, cx) => { on ? this.picked.delete(k) : this.picked.add(k); cx.notify(); })
-          .child(h_flex().size(16).flex_none().items_center().justify_center().rounded(4).border_1().border_color(on ? t.accent : t.input).when(on, (el) => el.bg(t.accent).child(svg("mods/crew/icons/check.svg").size(11).text_color(t.background))))
-          .child(svg(`mods/workspace-chrome/${k === LOCAL ? "monitor" : "server"}.svg`).size(13).flex_none().text_color(t.muted))
-          .child(div().flex_1().truncate().child(label(k)))
-          .when(label(k) !== (k === LOCAL ? "This computer" : k), (el) => el.child(div().text_size(11).text_color(t.dim).child(k === LOCAL ? "This computer" : k)));
-      })))
-      .child(h_flex().pt(18).gap(8).items_center()
-        .when(exists, (el) => el.child(button("pe-delete", "Delete page", "danger", () => { deletePage(id); closeOverlay(props().overlay); })))
+    const exists = pages().some(x=>x.id===id), close=()=>closeOverlay(props().overlay);
+    return panelSkin(v_flex().id("page-edit").size_full().min_w(0).min_h(0).p(24).gap(16).bg(t.background).text_color(t.foreground)
+      .track_focus(this.handle)
+      .on_key_down((e,cx)=>{if(e.key==="escape"){close();cx.stop_propagation();}})
+      .child(this.dialogTitle(exists?"Edit page":"New page","layers",t))
+      .child(v_flex().flex_none().gap(8).child(div().text_size(12).text_color(t.muted).child("Page name")).child(this.dialogField(t)))
+      .child(v_flex().flex_1().min_h(0).gap(8)
+        .child(div().text_size(12).text_color(t.muted).child("Include machines"))
+        .child(v_flex().id("page-machines").flex_1().min_h(0).overflow_y_scrollbar().gap(4).children(keys.map(k=>{
+          const on=this.picked.has(k);
+          return bevel(h_flex().id(`pe-${k}`).h(40).flex_none().px(12).gap(12).items_center(),on,t)
+            .text_color(on?t.foreground:t.muted).hover(st=>st.text_color(t.foreground))
+            .on_click((_e,cx)=>{on?this.picked.delete(k):this.picked.add(k);cx.notify();})
+            .child(svg(`mods/crew/icons/${k===LOCAL?"monitor":"server"}.svg`).size(16).flex_none().text_color(on?t.accent:t.muted))
+            .child(div().flex_1().min_w(0).truncate().text_size(13).child(label(k)))
+            .child(div().size(16).flex_none().flex().items_center().justify_center().border_1().border_color(on?t.accent:t.border)
+              .when(on,e=>e.child(svg("mods/crew/icons/check.svg").size(12).text_color(t.accent))));
+        }))))
+      .child(h_flex().h(32).flex_none().gap(8).items_center()
+        .when(exists,e=>e.child(this.dialogButton("pe-delete","Delete","danger",()=>{deletePage(id);close();},t)))
         .child(div().flex_1())
-        .child(button("pe-cancel", "Cancel", "plain", () => closeOverlay(props().overlay)))
-        .child(button("pe-save", exists ? "Save" : "Add page", "primary", () => this.savePageEdit())));
+        .child(this.dialogButton("pe-cancel","Cancel","plain",close,t))
+        .child(this.dialogButton("pe-save",exists?"Save page":"Add page","primary",()=>this.savePageEdit(),t))),t);
   }
 
   renameView(t) {
-    const key = props().rename;
-    const real = key === LOCAL ? "This computer" : key;
-    const button = (id, text, primary, action) => h_flex().id(id).h(32).px(14).items_center().rounded(8)
-      .border_1().border_color(primary ? t.solid : t.input).bg(primary ? t.solid : t.raised)
-      .text_color(primary ? t.solid_foreground : t.foreground).text_size(12.5).font_medium().cursor_pointer()
-      .hover(s => s.opacity(0.88)).on_click(action).child(text);
-    return v_flex().id("rename-machine").track_focus(this.handle)
-      .on_key_down((e, cx) => { if (e.key === "escape") { closeOverlay(props().overlay); cx.stop_propagation(); } })
-      .w_full().min_h(0).p(18).bg(t.popover).text_color(t.foreground)
-      .child(h_flex().items_center()
-        .child(div().flex_1().text_size(15).font_semibold().child("Rename machine"))
-        .child(div().text_size(11).text_color(t.dim).child("Esc")))
-      .child(div().pt(16).pb(7).text_size(11.5).text_color(t.dim).child(`Shown instead of "${real}"`))
-      .child(Input.new(this.input).h(36).px(10).rounded(9).border_1().border_color(this.inputFocused ? t.accent : t.input).bg(t.background).text_size(12.8).text_color(t.foreground))
-      .child(div().pt(6).text_size(11.5).text_color(t.dim).child("Only the name on screen changes; ssh and hc keep the real one. Empty: the real name again."))
-      .child(h_flex().pt(20).gap(8).justify_end()
-        .child(button("rn-cancel", "Cancel", false, () => closeOverlay(props().overlay)))
-        .child(button("rn-save", "Save", true, () => this.saveName())));
+    const real=props().rename===LOCAL?"This computer":props().rename, close=()=>closeOverlay(props().overlay);
+    return panelSkin(v_flex().id("rename-machine").size_full().min_w(0).min_h(0).p(24).gap(16).bg(t.background).text_color(t.foreground)
+      .track_focus(this.handle)
+      .on_key_down((e,cx)=>{if(e.key==="escape"){close();cx.stop_propagation();}})
+      .child(this.dialogTitle("Rename machine","server",t))
+      .child(v_flex().flex_none().gap(8).child(div().text_size(12).text_color(t.muted).child(`Display name for ${real}`)).child(this.dialogField(t)))
+      .child(div().flex_1().min_h(0).text_size(12).text_color(t.muted).child("Leave blank to restore its original name. Connections keep using the same address."))
+      .child(h_flex().h(32).flex_none().gap(8).justify_end()
+        .child(this.dialogButton("rn-cancel","Cancel","plain",close,t))
+        .child(this.dialogButton("rn-save","Save name","primary",()=>this.saveName(),t))),t);
   }
 
   // Only what's unusual, after the name: "herdr \u00b7 spike \u21912 \u21931". The repo or
@@ -767,7 +774,7 @@ export default class Spaces extends View {
       .justify_start()
       .items_center()
       .text_size(11)
-      .text_color(t.dim)
+      .text_color(t.muted)
       .child(svg("mods/crew/icons/branch.svg").size(11).flex_none())
       .child(div().flex_1().min_w(0).truncate().tooltip(where || raw).child(where || raw))
       .when(g.ahead > 0, (el) => el.child(div().flex_none().text_color(t.ansi2).child(`\u2191${g.ahead}`)))
@@ -783,10 +790,10 @@ export default class Spaces extends View {
     const light = luminance(fill), darkInk = "#142331";
     const badgeInk = (light+.05)/(luminance(darkInk)+.05) >= 1.05/(light+.05) ? darkInk : "#ffffff";
     const icon = spaceIcons()[w.id];
-    const width=Math.max(132,(find(layout(), "sidebar")?.size?.px ?? 268)-22-(tree?26:0));
-    const frame=spaceGeometry(width,Boolean(tree));
+    const width=Math.max(132,(find(layout(), "sidebar")?.size?.px ?? 268)-22-(tree?24:0));
+    const frame=spaceGeometry(width,Boolean(tree),compactCards());
     const ink={...t,...frame.ink};
-    const card = spaceFrame(v_flex().id(`space-${w.id}`).h(rowHeight({ tree })).flex_1().min_w(0).justify_center(), on, t.accent, width, Boolean(tree))
+    const card = spaceFrame(v_flex().id(`space-${w.id}`).h(rowHeight({ tree })).flex_1().min_w(0).justify_center(), on, t.accent, width, Boolean(tree), compactCards())
       .tooltip(`${w.name}\n${tree ? `Worktree of ${parentName}\n` : ""}${g ? [g.name,g.branch].filter(Boolean).join(" · ") : w.folder || "Workspace"}\nRight-click for space actions · Drag to reorder`)
       .when(!on, (el) => el.hover((st) => st.opacity(0.88)))
       .when(this.pressed === w.id && this.over !== w.id, (el) => el.opacity(0.5))
@@ -828,10 +835,10 @@ export default class Spaces extends View {
       .on_mouse_down("right", () => this.menu(w))
       .child(div().absolute().left(frame.socketX-frame.height*.33).top(frame.socketY-frame.height*.33).child(this.portrait(w, fill, frame.height*0.66, tree, true)))
       .child(h_flex().pl(frame.textLeft).pr(frame.textRight).items_center().min_w(0)
-        .child(v_flex().flex_1().min_w(0).gap(4).line_height(1.1)
+        .child(v_flex().flex_1().min_w(0).gap(compactCards()?4:8).line_height(1)
           .child(h_flex().min_w(0).gap(6).items_center()
-            .child(div().flex_1().min_w(0).truncate().text_size(tree ? 12 : 13).font_semibold().text_color(ink.foreground).child(w.name))
-            .when(width>=220 && !childCount,el=>el.child(h_flex().flex_none().gap(3).items_center().text_size(9).text_color(ink.dim)
+            .child(div().flex_1().min_w(0).truncate().text_size(13).font_semibold().text_color(ink.foreground).child(w.name))
+            .when(width>=280 && !childCount,el=>el.child(h_flex().flex_none().gap(3).items_center().text_size(9).text_color(ink.dim)
               .tooltip(`${w.tabs?.length ?? 0} tabs`)
               .child(svg("mods/crew/icons/layers.svg").size(10))
               .child(String(w.tabs?.length ?? 0))))
@@ -841,14 +848,13 @@ export default class Spaces extends View {
               .on_mouse_up("left", (_e,cx) => cx.stop_propagation())
               .on_click((_e,cx) => {cx.stop_propagation();this.toggleWorktrees(w.id);cx.notify();})
               .child(svg(`mods/crew/icons/chevron-${treeOpen ? "down" : "right"}.svg`).size(13)))))
-          .child(g ? this.gitTail(g, tree, w.name, ink) : div().truncate().text_size(10.5).text_color(ink.dim).child(w.folder || "Workspace"))));
+          .child(g ? this.gitTail(g, tree, w.name, ink) : div().truncate().text_size(11.5).text_color(ink.muted).tooltip(w.folder || "Workspace").child(pathLabel(w.folder,width-frame.textLeft-frame.textRight)))));
     if (!tree) return h_flex().h(rowHeight({tree})).flex_none().min_w(0).child(card);
     // The connector occupies its own gutter; it never covers the child chassis or text.
     const rail = on ? skin().accent : skin().edge;
-    return h_flex().relative().h(rowHeight({tree})).flex_none().min_w(0).pl(26)
-      .child(div().absolute().left(11).top(-5).w(1).h(tree === "└─" ? 35 : 65).bg(rail))
-      .child(div().absolute().left(11).top(30).w(15).h(1).bg(rail))
-      .child(div().absolute().left(10).top(29).size(3).bg(on ? t.accent : t.edge))
+    return h_flex().relative().h(rowHeight({tree})).flex_none().min_w(0).pl(24)
+      .child(div().absolute().left(12).top(-8).w(1).h(tree === "└─" ? rowHeight({tree})/2+8 : rowHeight({tree})+8).bg(rail))
+      .child(div().absolute().left(12).top(rowHeight({tree})/2).w(12).h(1).bg(rail))
       .child(card);
   }
 
@@ -900,10 +906,10 @@ export default class Spaces extends View {
     }
     if (changed) setShared("space.colors", kept);
     this.notePageSpace();
-    return v_flex().relative().size_full().min_h(0).overflow_hidden().bg(t.light?t.chrome:t.chrome+"60").text_size(13)
+    return v_flex().relative().size_full().min_h(0).overflow_hidden().bg(t.chrome).text_size(13)
       .child(h_flex().h(40).flex_none().pl(collapsed ? 6 : 14).pr(collapsed ? 6 : 12).gap(4).items_center().justify_between().text_size(11).text_color(t.muted)
         .when(!collapsed, el => el.child(div().font_semibold().text_color(t.accent).child("SPACES")))
-        .when(!collapsed, el => el.child(div().flex_1()).child(bevel(div().id("page-add").size(26).flex_none().flex().items_center().justify_center())
+        .when(!collapsed, el => el.child(div().flex_1()).child(densityToggle("spaces-density")).child(bevel(div().id("page-add").size(26).flex_none().flex().items_center().justify_center())
           .hover(s => s.opacity(0.85).text_color(t.foreground)).tooltip("New page: a tab with the machines you choose")
           .on_click(() => this.newPage()).child(svg("mods/crew/icons/layers.svg").size(13))))
         .when(!collapsed, el => el.child(bevel(div().id("crew-open").size(26).flex_none().flex().items_center().justify_center())
@@ -913,11 +919,9 @@ export default class Spaces extends View {
         .child(bevel(div().id("space-new").size(26).flex_none().flex().items_center().justify_center()).hover(s => s.opacity(0.85).text_color(t.foreground))
           .on_click(() => run("space.new")).child(svg("mods/crew/icons/plus.svg").size(14))))
       .when(!collapsed && pages().length > 0, el => el.child(this.pageBar(t)))
-      .child(v_flex().flex_1().min_h(0).pl(collapsed ? 0 : 10).pr(collapsed ? 4 : 12).pb(10).gap(5).overflow_y_scrollbar().mode("always")
+      .child(v_flex().flex_1().min_h(0).pl(collapsed ? 0 : 10).pr(collapsed ? 4 : 12).pb(16).gap(8).overflow_y_scrollbar().mode("always")
         .on_mouse_up("left", (_e, cx) => { this.pressed = null; this.over = null; this.dragMachine = null; this.overMachine = null; cx.notify(); })
         .children(this.grouped(t, collapsed)))
-      .child(div().absolute().right(0).top(0).bottom(0).w(4).bg(skin().border))
-      .child(div().absolute().right(1).top(0).bottom(0).w(1).bg(skin().edge))
-      .child(div().absolute().right(4).top(40).w(1).h(34).bg(skin().accent));
+      .child(div().absolute().right(0).top(0).bottom(0).w(1).bg(t.border));
   }
 }

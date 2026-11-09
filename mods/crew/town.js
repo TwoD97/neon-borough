@@ -5,10 +5,10 @@ import {skin} from "./theme-tokens.js";
 // and idle robots rest calmly. Assets: Neon Borough pack (town/).
 import { div, image } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { agents, spaces, run, shared, setShared, openOverlay, terminals } from "herdr";
+import { agents, spaces, run, shared, setShared, openOverlay, terminals, fonts } from "herdr";
 import { HOUSES, PROPS, STREET, SKYLINE, ROAD, PROPS2 } from "./town/houses.js";
 import { CHARACTERS, byId, characterOf, provider, spriteFor, stillFor, line } from "./cast.js";
-import { keyOf, inPage, pages, currentPage } from "./machines.js";
+import { keyOf, inPage, pages, currentPage, label as machineLabel, ordered as orderMachines } from "./machines.js";
 import { reportedActivity } from "./activity-data.js";
 import { beginTown, legFor, frameFor, spriteEl } from "./town-actors.js";
 import { withWait, WAIT_LABEL } from "./agent-wait.js";
@@ -16,6 +16,36 @@ import { bevel } from "./controls.js";
 
 const T = "mods/crew/town";
 const FX = `${T}/fx`;
+// Each town gets its own skyline (district mood), in town-tab order; the plaza fills the near side.
+const SKYLINES = ["skyline-seamless", "skyline-uptown", "skyline-harbor", "skyline-industrial"].map((n) => `${T}/gen/${n}.png`);
+const PLAZA = `${T}/gen/plaza-seamless.png`;
+const LOT = `${T}/gen/empty-lot.png`;
+// Text that is part of the pixel art (signs, monument, name tags): fonts/PixelifySans. Herdr
+// registers mod fonts when it starts, so until then the Win98 mod's VGA pixel font stands in.
+let pixelFont;
+export function PIXEL_FONT() {
+  pixelFont ??= ["Pixelify Sans", "PxPlus IBM VGA 8x16", "Pixelated MS Sans Serif"].find((f) => fonts().includes(f)) ?? "";
+  return pixelFont;
+}
+// Names stand on the street: a sign at each house, a monument for the town (name boxes as fractions).
+const SIGN = { file: `${T}/gen/street-sign.png`, w: 420, h: 320, box: [0.135, 0.265, 0.885, 0.46] };
+const MONUMENT = { file: `${T}/gen/town-monument.png`, w: 900, h: 480, box: [0.19, 0.28, 0.81, 0.52] };
+
+// Art with a name written on its blank panel.
+function namedArt(art, id, x, feet, h, name, size, t, extra) {
+  const w = Math.round(h * art.w / art.h), [l, tp, r, b] = art.box;
+  const el = div().id(id).absolute().left(Math.round(x)).top(Math.round(feet - h)).w(w).h(Math.round(h))
+    .child(image(art.file).absolute().top(0).left(0).w(w).h(Math.round(h)))
+    .child(h_flex().absolute().left(Math.round(w * l)).w(Math.round(w * (r - l))).top(Math.round(h * tp)).h(Math.round(h * (b - tp)))
+      .px(Math.round(w * 0.025)).gap(6).items_center().justify_center()
+      .when(!!extra, (e) => e.child(extra))
+      .child(div().min_w(0).truncate().when(!!PIXEL_FONT(), (e) => e.font_family(PIXEL_FONT())).text_size(size).font_weight(600).text_color("#e8fbff").child(name)));
+  return { el, w };
+} // 480x360, room to grow beside a small town
+function skylineOf(town) {
+  const i = towns().findIndex((t) => t.id === town?.id);
+  return SKYLINES[Math.max(0, i) % SKYLINES.length];
+}
 const HOME_SIZE = { patch: [468, 368], ghost: [375, 478], atlas: [478, 444], zip: [478, 328], nova: [464, 412], hex: [469, 403] };
 const WORD = { blocked: "NEEDS YOU", working: "WORKING", waiting: "WAITING", done: "COMPLETE", idle: "HOME", empty: "EMPTY PLOT" };
 const RANK = { blocked: 5, working: 4, waiting: 3, done: 2, idle: 1 };
@@ -65,21 +95,44 @@ export function setHouse(spaceId, houseId) {
 }
 
 // The spaces of the shown page, and the agents of each.
-export function townModel(district = 0) {
+// Towns: one per sidebar page when you made pages, else one per machine.
+// Each has its own streets, skyline and residents.   { id, name, keys: [machine key, ...] }
+export function towns() {
+  const list = pages();
+  if (list.length) return list.map((p) => ({ id: `page:${p.id}`, name: p.name, keys: p.machines }));
+  const keys = orderMachines(spaces().map((s) => keyOf(s.machine)));
+  return keys.map((k) => ({ id: `m:${k}`, name: machineLabel(k), keys: [k] }));
+}
+
+// The town on screen: the one picked in the town tabs, else the one with the active space.
+export function currentTown() {
+  const all = towns();
+  const picked = all.find((t) => t.id === shared("town.current"));
+  if (picked) return picked;
+  const active = spaces().find((s) => s.active);
+  return all.find((t) => active && t.keys.includes(keyOf(active.machine))) ?? all[0] ?? { id: "none", name: "Town", keys: [] };
+}
+
+export function setTown(id) { setShared("town.current", id); }
+
+// The spaces of one town (every space when `town` is omitted) and the agents of each.
+export function townModel(town = currentTown()) {
   const records = terminals();
   const all = agents().map((a) => withWait(a, records));
-  const sp = spaces().filter((s) => inPage(keyOf(s.machine)));
-  const districts = Math.max(1, Math.ceil(sp.length / 12));
-  const d = Math.min(district, districts - 1);
-  const shown = sp.slice(d * 12, d * 12 + 12);
+  const sp = spaces().filter((s) => !town || town.keys.includes(keyOf(s.machine)));
   const houses = housesFor(sp);
-  const homes = shown.map((s) => {
+  const homes = sp.map((s) => {
     const mine = all.filter((a) => a.space === s.id);
     const top = mine.reduce((best, a) => ((RANK[a.status] ?? 0) > (RANK[best] ?? 0) ? a.status : best), null);
     const resident = mine[0] ? characterOf(mine[0].address) : CHARACTERS[hash(s.id) % CHARACTERS.length];
     return { space: s, agents: mine, state: mine.length ? top ?? "idle" : "empty", identity: resident.id, house: houseById[houses[s.id]] ?? ALL_HOUSES[0] };
   });
-  return { homes, districts, district: d, page: currentPage() };
+  return { homes, town };
+}
+
+// How wide a town must be so its houses keep a readable size: two rows, ~420 px per plot.
+export function townWidthFor(count, available) {
+  return Math.max(available, Math.ceil(Math.max(1, count) / 2) * 420);
 }
 
 // The scene, top to bottom: skyline, back row of houses on the far sidewalk, the road, a front
@@ -123,7 +176,7 @@ function packRow(homes, rowH, W, depth) {
   for (const it of items) {
     it.x = x;
     // Roof plaques occupy their own plot, even when the district has six houses.
-    it.labelWidth = Math.min(184, it.w + 42, W / (homes.length + .25) - 12);
+    it.labelWidth = Math.min(240, it.w + 42, W / (homes.length + .25) - 12);
     x += it.w; gaps.push({ x0: x, x1: x + gap }); x += gap;
   }
   return { items, gaps };
@@ -179,7 +232,7 @@ function robotEl(view, a, leg, feet, size, t, now, records) {
   }
   box.child(div().absolute().bottom(0).left(-10).w(w + 20).flex().justify_center()
     .child(div().px(5).py(1).rounded(3).bg(t.popover).border_1()
-      .border_color(`${ch.color}44`).text_size(10).font_bold()
+      .border_color(`${ch.color}44`).when(!!PIXEL_FONT(), (e) => e.font_family(PIXEL_FONT())).text_size(12.5).font_weight(600)
       .text_color(t.light ? t.foreground : ch.color).child(ch.name)));
   return box;
 }
@@ -234,21 +287,21 @@ function houseEls(view, it, feet, t) {
     div().absolute().left(hx + Math.round(hw * 0.08)).top(Math.round(feet - 7)).w(Math.round(hw * 0.84)).h(12).rounded(99).bg(`${color}${home.space.active ? "99" : "40"}`),
     div().id(`house-${id}`).absolute().left(hx).top(hy).w(hw).h(hh).cursor_pointer().tooltip(tip)
       .on_click(() => { run("layout.select", { stack: "root", child: "desktop" }); run("space.select", { id }); })
-      .on_mouse_down("right", (_e, cx) => { cx.stop_propagation(); openOverlay({ mod: "crew", kind: "dialog", width: 720, height: 520, props: { housePicker: id } }); })
+      .on_mouse_down("right", (_e, cx) => { cx.stop_propagation(); openOverlay({ mod: "crew", kind: "dialog", frame: "none", width: 860, height: 620, props: { housePicker: id } }); })
       .child(image(house.file).size_full().opacity(home.state === "empty" ? 0.6 : 1)),
   ];
   els.unshift(...houseGlow(view, home, { x: hx, y: hy, w: hw, h: hh }));
   els.push(...houseActivity(view, home, { x: hx, y: hy, w: hw, h: hh }));
-  // A fitted address plaque keeps names readable without a floating task bubble.
-  const labelWidth=Math.max(46,Math.round(it.labelWidth ?? hw+16));
-  const statusColor=home.state==="blocked"?t.blocked:home.state==="working"?t.working:home.state==="done"?t.done:t.dim;
-  els.push(bevel(h_flex().id(`house-sign-${id}`).absolute()
-    .left(Math.round(hx+(hw-labelWidth)/2)).top(Math.max(3,hy-27)).w(labelWidth).h(23).px(8).gap(5).items_center(),home.space.active).absolute()
-    .tooltip(tip)
-    .on_click(()=>{run("layout.select",{stack:"root",child:"desktop"});run("space.select",{id});})
-    .child(div().size(4).flex_none().bg(statusColor))
-    .child(div().flex_1().min_w(0).truncate().text_size(10).font_semibold().text_color(t.foreground).child(home.space.name))
-    .child(div().flex_none().text_size(9).text_color(t.dim).child(String(home.agents.length))));
+  // Its name on a street sign standing at the house's front-left corner, with a status light.
+  const statusColor = home.state === "blocked" ? t.blocked : home.state === "working" ? t.working : home.state === "waiting" ? t.waiting ?? WAIT_TONE : home.state === "done" ? t.done : t.dim;
+  const signH = Math.max(84, Math.min(150, hh * 0.52));
+  // Long names get a smaller size before they are cut short.
+  const boxW = signH * SIGN.w / SIGN.h * (SIGN.box[2] - SIGN.box[0]) - 14;
+  const nameSize = Math.max(10, Math.min(signH * 0.13, boxW / Math.max(4, home.space.name.length * 0.62)));
+  const sign = namedArt(SIGN, `house-sign-${id}`, 0, feet + 2, signH, home.space.name, nameSize, t,
+    div().size(Math.max(5, Math.round(signH * 0.06))).flex_none().rounded(1).bg(statusColor));
+  els.push(sign.el.left(Math.round(hx - sign.w * 0.32)).cursor_pointer().tooltip(tip)
+    .on_click(() => { run("layout.select", { stack: "root", child: "desktop" }); run("space.select", { id }); }));
   return els;
 }
 
@@ -262,19 +315,21 @@ function tiled(file, aspect, top, h, W, id) {
 
 export function renderTown(view, t, W, height) {
   t=skin(t);
-  const m = townModel(view.district ?? 0);
+  const m = townModel(view.shownTown ?? currentTown());
   const g = geometry(W,height);
-  const seed = hash(m.page?.id ?? "all");
+  const seed = hash(m.town?.id ?? "all");
   const motion = motionFor(view);
   const activeWorkers = m.homes.some(home => home.agents.some(a => a.status === "working"));
   const ambientMotion = motion && activeWorkers;
-  const half = Math.ceil(m.homes.length / 2);
-  const rowBack = packRow(m.homes.slice(0, half), g.row0, W, 1), rowFront = packRow(m.homes.slice(half), g.row1, W, 1.08);
+  // A small town (three spaces or fewer) builds on the near side of the street, bigger;
+  // a larger one fills both sides.
+  const few = m.homes.length <= 3;
+  const half = few ? 0 : Math.ceil(m.homes.length / 2);
+  const rowBack = packRow(m.homes.slice(0, half), g.row0, W, 1), rowFront = packRow(m.homes.slice(half), g.row1, W, few ? 1.5 : 1.08);
   const kids = [];
   // Sky and skyline.
   kids.push(div().absolute().left(0).top(0).w(W).h(g.roadTop).bg("#120d2a"));
-  if (SKYLINE) kids.push(...tiled(SKYLINE, 3, 0, g.backLine * 1.25, W, "sky"));
-  else kids.push(image(STREET).absolute().left(0).top(-Math.round(W * 0.2)).w(W).h(Math.round(W * 0.66)).opacity(0.5));
+  kids.push(...tiled(skylineOf(m.town), 3, 0, g.backLine * 1.25, W, "sky"));
   // Drones drifting over the roofs (native animation, no timer).
   const drone = PROPS.find((x) => x.id === "drone");
   if (drone) for (let k = 0; k < 2; k++) {
@@ -289,8 +344,10 @@ export function renderTown(view, t, W, height) {
     const ih = Math.round(g.road / 0.16), top = Math.round(g.roadTop + g.road * 0.5 - ih * 0.5);
     kids.push(image(STREET).absolute().left(0).top(top).w(W).h(ih));
   }
-  kids.push(div().absolute().left(0).top(Math.round(g.roadBottom + g.road * 0.18)).w(W).h(g.H).bg("#141022"));
-  if (STREET) kids.push(image(STREET).absolute().left(0).top(Math.round(g.roadBottom + g.road * 0.18)).w(W).h(Math.round(W * 0.66)).opacity(0.65));
+  // The near side: plaza paving, tiled down to the bottom of the scene.
+  const plazaTop = Math.round(g.roadBottom + g.road * 0.18), plazaH = Math.max(1, g.H - plazaTop);
+  kids.push(div().absolute().left(0).top(plazaTop).w(W).h(plazaH).bg("#141022"));
+  kids.push(...tiled(PLAZA, 4, plazaTop, Math.max(plazaH, W / 8), W, "plaza"));
   if (!ROAD) {
     kids.push(div().absolute().left(0).top(Math.round(g.roadTop - 1)).w(W).h(2).bg("#2de2e6aa"));
     kids.push(div().absolute().left(0).top(Math.round(g.roadBottom)).w(W).h(2).bg("#ff2bd6aa"));
@@ -313,7 +370,40 @@ export function renderTown(view, t, W, height) {
     }
   });
   fillGaps(rowBack.gaps, g.backLine, g.row0 * 0.55, 1);
-  fillGaps(rowFront.gaps, g.frontLine, g.row1 * 0.5, 2);
+  // The town's name on a monument standing in the plaza, in the widest free spot of the near side.
+  let frontGaps = rowFront.gaps;
+  m.monument = false;
+  if (m.town?.name) {
+    const monH = g.row1 * 0.62, monW = monH * MONUMENT.w / MONUMENT.h;
+    const at = frontGaps.reduce((best, gp, gi) => (gp.x1 - gp.x0 > (best < 0 ? 0 : frontGaps[best].x1 - frontGaps[best].x0) ? gi : best), -1);
+    const gp = frontGaps[at];
+    const room = gp ? gp.x1 - gp.x0 : 0;
+    const h = Math.min(monH, room * 0.9 * MONUMENT.h / MONUMENT.w);
+    if (h >= g.row1 * 0.32) {
+      const w = h * MONUMENT.w / MONUMENT.h, x = gp.x0 + (room - w) / 2;
+      const mon = namedArt(MONUMENT, "town-monument", x, g.frontLine, h, m.town.name.toUpperCase(), Math.max(16, Math.min(40, h * 0.17)), t);
+      props.push({ feet: g.frontLine, el: mon.el.tooltip(`${m.town.name} · ${m.homes.length} ${m.homes.length === 1 ? "space" : "spaces"}`) });
+      const left = { x0: gp.x0, x1: x - w * 0.05 }, right = { x0: x + w * 1.05, x1: gp.x1 };
+      frontGaps = frontGaps.filter((_, gi) => gi !== at).concat([left, right].filter((r) => r.x1 - r.x0 > g.row1 * 0.3));
+      m.monument = true;
+    }
+  }
+  // A small town keeps empty lots on either side of its houses: room to grow, not empty ground.
+  if (few && rowFront.items.length) {
+    const lotH = rowFront.items[0].h * 0.62, lotW = lotH * 480 / 360;
+    const rests = [];
+    frontGaps = frontGaps.filter((gp, gi) => {
+      const edge = gi === 0 || gi === frontGaps.length - 1, room = gp.x1 - gp.x0;
+      if (!edge || room < lotW * 1.25) return true;
+      const x = gi === 0 ? gp.x1 - lotW - room * 0.12 : gp.x0 + room * 0.12;
+      props.push({ feet: g.frontLine, el: image(LOT).id(`lot-${gi}`).absolute().left(Math.round(x)).top(Math.round(g.frontLine - lotH)).w(Math.round(lotW)).h(Math.round(lotH)) });
+      // What is left beyond the lot still gets street furniture.
+      const rest = gi === 0 ? { x0: gp.x0, x1: x - lotW * 0.1 } : { x0: x + lotW * 1.1, x1: gp.x1 };
+      if (rest.x1 - rest.x0 > g.row1 * 0.4) rests.push(rest);
+      return false;
+    }).concat(rests);
+  }
+  fillGaps(frontGaps, g.frontLine, g.row1 * 0.5, 2);
   // The front edge: small details, and a robot cat that strolls back and forth.
   const small = PROPS2.filter((x) => /bollards|hydrant|plants|cones|tarp-crates/.test(x.id));
   for (let n = 0; small.length && n < 5; n++) {
@@ -339,7 +429,7 @@ export function renderTown(view, t, W, height) {
   // waiting gets a gentle amber signal and completion stays visible.
   // Working, waiting and finished robots stand at their own door (room for a work station);
   // idle ones stroll their sidewalk.
-  const size = Math.max(30, Math.min(70, W * 0.04));
+  const size = Math.max(30, Math.min(96, g.row1 * (few ? 0.3 : 0.22)));
   const now = Date.now(), records = terminals();
   beginTown(view);
   const robots = [];

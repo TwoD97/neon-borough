@@ -12,7 +12,7 @@ import { cardActivity, isActiveCard } from "./card-activity.js";
 // them on the machines picked in Settings > Scheduled merges: cron on Linux/macOS, Task Scheduler
 // on Windows. An always-on server keeps merging with this PC off. See scheduler.js.
 import { View, div, svg, image } from "gpui-kit";
-import { v_flex, h_flex, Scrollbar, TextView, v_virtual_list, TextareaState, Textarea, InputState, Input } from "gpui-base";
+import { v_flex, h_flex, Scrollbar, TextView, v_virtual_list, Select, Popup, TextareaState, Textarea, InputState, Input } from "gpui-base";
 import { agents, panes, spaces, machines, focused, exec, run, theme, props, settings, shared, setShared, nextCommand, openOverlay, layout, window as appWindow} from "herdr";
 import { MERGE_METHODS, createGh, parseRemote, runIdFromUrl } from "./gh.js";
 import { createTracker } from "./tracker.js";
@@ -151,6 +151,10 @@ export default class PrFlow extends View {
     this.selected = 0;
     this.org = localStorage.getItem("org") || null; // the owner the list shows; null: all
     this.repo = localStorage.getItem("repo") || null; // within it, one repo; null: all of the owner's
+    this.filterOpen = null;
+    this.filterControls = Object.fromEntries(["org", "repo"].map(key => [key, {
+      trigger: cx.focus_handle(), list: cx.focus_handle(), at: 0, first: 0,
+    }]));
     this.logs = new Map(); // run id -> { name, runId, repo, tail, full, failed }
     this.opened = new Set(); // timeline rows showing their steps or checks
     this.filesFold = new Map(); // url -> whether the changed files are showing, once you chose
@@ -745,6 +749,7 @@ export default class PrFlow extends View {
 
   onKey(e, cx) {
     if (this.typing) return; // keys belong to the field being typed in
+    if (this.filterOpen || Object.values(this.filterControls ?? {}).some(s => s.trigger.is_focused())) return;
     const cards = this.shown();
     if (this.settingsOpen) {
       if (e.key !== "escape" && e.key !== "backspace") return;
@@ -803,39 +808,77 @@ export default class PrFlow extends View {
     this.selectedUrl = null;
   }
 
-  chip(id, label, count, active, onPick, t) {
-    return bevel(h_flex().id(id).h(28).flex_none().px(8).gap(6).items_center(),active)
-      .text_color(active ? skin().foreground : skin().muted).hover((s) => s.opacity(.86).text_color(skin().foreground))
-      .on_mouse_down("left", (_e, cx) => { cx.stop_propagation(); this.handle.focus(); })
-      .on_click((_e, cx) => { cx.stop_propagation(); onPick(); cx.notify(); })
-      .child(div().text_size(11.5).max_w(140).truncate().child(label))
-      .child(div().text_size(9.5).text_color(active ? skin().accent : skin().dim).child(String(count)));
+  filterDropdown(key, options, selected, t) {
+    const state = this.filterControls[key], open = this.filterOpen === key;
+    const title = key === "org" ? "Owner" : "Repository";
+    const current = options.find(o => o.value === selected) ?? options[0];
+    const choose = (index, cx) => {
+      const option = options[index];
+      if (!option) return;
+      if (key === "org") this.setOrg(option.value);
+      else {
+        if (option.value) this.setOrg(option.value.split("/")[0]);
+        this.setRepo(option.value);
+      }
+      this.filterOpen = null; state.trigger.focus(); cx.notify();
+    };
+    const trigger = bevel(h_flex().id(`filter-${key}-trigger`).w_full().min_w(0).h(32).px(8).gap(4).items_center(),open || current.value !== null,t)
+      .track_focus(state.trigger).tab_index(key === "org" ? 0 : 1).accessibility_label(`${title}: ${current.label}, ${current.count} pull requests`)
+      .tooltip(`${title}: ${current.label} · ${current.count} pull requests`)
+      .on_mouse_down("left", (_e,cx) => {cx.stop_propagation();state.trigger.focus();})
+      .child(div().flex_1().min_w(0).truncate().text_size(11).text_color(t.foreground).child(current.label))
+      .child(div().flex_none().text_size(9).text_color(t.dim).child(String(current.count)))
+      .child(svg("mods/crew/icons/chevron-down.svg").size(10).flex_none().text_color(open ? t.accent : t.muted));
+    const menuWidth = Math.max(180,Math.min(300,(this.panelWidth ?? 340)/(settings().zoom || 1)-20));
+    const row = (option,index) => h_flex().id(`filter-${key}-option-${index}`).h(30).px(9).gap(7).items_center().min_w(0).cursor_pointer()
+      .role("menu_list_option").aria_selected(option.value === current.value)
+      .when(index === state.at,el => el.aria_active_descendant()).bg(index === state.at ? t.selected : t.background)
+      .hover(el => el.bg(t.hover)).on_hover((on,cx) => {if(on && state.at !== index){state.at=index;cx.notify();}})
+      .on_click((_e,cx) => {cx.stop_propagation();choose(index,cx);})
+      .child(div().size(12).flex_none().when(option.value === current.value,el => el.child(icon("check",12,t.accent))))
+      .child(div().flex_1().min_w(0).truncate().text_size(11).text_color(t.foreground).tooltip(option.label).child(option.label))
+      .child(div().flex_none().text_size(10).text_color(t.dim).child(String(option.count)));
+    const pageSize=8;
+    const first=Math.max(0,Math.min(state.first ?? 0,options.length-pageSize));
+    const reveal=()=>{state.first=Math.max(0,Math.min(state.at,Math.max(first,state.at-pageSize+1)));};
+    const list = v_flex().id(`filter-${key}-menu`).w(menuWidth).h(Math.min(240,options.length*30)+38).p(7).track_focus(state.list)
+      .on_mouse_down("left",(_e,cx) => cx.stop_propagation())
+      .on_key_down((e,cx) => {
+        if (e.key === "down") state.at = (state.at+1)%options.length;
+        else if (e.key === "up") state.at = (state.at+options.length-1)%options.length;
+        else if (e.key === "home") state.at = 0;
+        else if (e.key === "end") state.at = options.length-1;
+        else return; // Select owns Enter/Escape and returns focus to its trigger.
+        reveal();cx.stop_propagation();cx.notify();
+      })
+      .child(div().h(24).px(9).flex().items_center().text_size(9).font_semibold().text_color(t.accent).child(title.toUpperCase()))
+      .child(v_flex().id(`filter-${key}-options`).w_full().h(Math.min(240,options.length*30)).flex_none()
+        .on_scroll_wheel((e,cx)=>{if(Math.abs(e.delta.y)<1)return;state.first=Math.max(0,Math.min(Math.max(0,options.length-pageSize),first+(e.delta.y<0?1:-1)));cx.stop_propagation();cx.notify();})
+        .children(options.slice(first,first+pageSize).map((option,i)=>row(option,first+i).flex_none())));
+    return Select.new(`filter-${key}`).flex_1().min_w(0).accessibility_label(title).open(open)
+      .track_focus(state.trigger).content_focus_handle(state.list)
+      .on_open_change((value,cx) => {
+        this.filterOpen = value ? key : null;
+        if(value){state.at=Math.max(0,options.findIndex(o=>o.value===current.value));state.first=Math.max(0,state.at-pageSize+1);}
+        cx.notify();
+      })
+      .on_confirm((_e,cx) => choose(state.at,cx))
+      .child(Popup.new(`filter-${key}-popup`,trigger).w_full().min_w(0).anchor(key === "org" ? "bottom_left" : "bottom_right")
+        .when(open,el => el.content(bevel(div(),false,t).child(list))));
   }
 
-  // One chip per owner under the header, when the list has more than one.
-  orgBar(all, t) {
-    const orgs = orgsOf(all);
-    if (orgs.length < 2) return null;
-    const on = orgs.some(([o]) => o === this.org) ? this.org : null;
-    return h_flex().id("orgs").w_full().min_w(0).flex_none().px(10).pt(7).pb(4).gap(5).flex_wrap().items_center()
-      .child(this.chip("org-all", this.t("org_all"), all.length, on === null, () => this.setOrg(null), t))
-      .children(orgs.map(([org, count]) => this.chip(`org-${org}`, org, count, on === org, () => this.setOrg(org), t)));
-  }
-
-  // Under a chosen owner, one chip per repo of theirs, when they have more than one.
-  repoBar(all, t) {
-    if (!this.org) return null;
-    const owned = all.filter((c) => String(c.repo).split("/")[0] === this.org);
-    const repos = reposOf(owned);
-    if (repos.length < 2) return null;
-    const on = repos.some(([r]) => r === this.repo) ? this.repo : null;
-    // Wrap whole controls instead of overlapping hit lanes in a narrow horizontal scroller.
-    return h_flex().id("repos").w_full().min_w(0).flex_none().px(10).pt(4).pb(9).gap(5).flex_wrap().items_center().border_b(1).border_color(skin().border)
-      .child(this.chip("repo-all", this.t("repo_all"), owned.length, on === null, () => this.setRepo(null), t))
-      .children(repos.map(([repo, count]) => this.chip(`repo-${repo}`, repo.split("/")[1], count, on === repo, () => this.setRepo(repo), t)));
+  filterBar(all,t) {
+    const orgs=orgsOf(all),org=orgs.some(([value])=>value===this.org)?this.org:null;
+    const owned=byOrg(all,org),repos=reposOf(owned);
+    const repo=org && repos.some(([value])=>value===this.repo)?this.repo:null;
+    const owners=[{value:null,label:"All owners",count:all.length},...orgs.map(([value,count])=>({value,label:value,count}))];
+    const repositories=[{value:null,label:"All repos",count:owned.length},...repos.map(([value,count])=>({value,label:org?value.split("/")[1]:value,count}))];
+    return h_flex().id("pr-filters").w_full().min_w(0).flex_none().px(10).py(7).gap(6).items_center().border_b(1).border_color(t.border)
+      .child(this.filterDropdown("org",owners,org,t)).child(this.filterDropdown("repo",repositories,repo,t));
   }
 
   selectInbox(view, cx) {
+    this.filterOpen = null;
     this.inboxView = view === "requests" ? "requests" : "pulls";
     localStorage.setItem("inbox-view", this.inboxView);
     this.url = null;
@@ -956,10 +999,8 @@ export default class PrFlow extends View {
     this.selected = kept >= 0 ? kept : Math.max(0, Math.min(this.selected, cards.length - 1));
     this.selectedUrl = cards[this.selected]?.url;
     const error = this.tracker.lastError() || this.schedError;
-    const bar = this.orgBar(all, t), repoBar = bar && this.repoBar(all, t);
     return v_flex().size_full().child(this.header(cards.length, t))
-      .when(Boolean(bar), (e) => e.child(bar))
-      .when(Boolean(repoBar), (e) => e.child(repoBar))
+      .child(this.filterBar(all,t))
       .child(v_flex().id("pr-list").flex_1().min_h(0).overflow_y_scrollbar().p(10).gap(9).when(Boolean(scheduled), (e) => e.child(scheduled)).children(cards.map((c, i) => this.row(c, i, t))))
       .when(Boolean(error), (e) => e.child(div().flex_none().px(14).py(6).border_t(1).border_color(t.border).text_size(11).text_color(t.blocked).tooltip(sanitize(error)).child(sanitize(error))));
   }

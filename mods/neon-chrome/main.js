@@ -39,18 +39,16 @@ export default class WorkspaceChrome extends View {
     const collapsed = narrow();
     const tight = (find(layout(), "sidebar")?.size?.px ?? 320) < 240;
     if (props()?.footer) {
-      const row = (id, icon, label, dim, action) => (collapsed ? bevel(h_flex()) : groupFrame(h_flex(),false,t.accent,26,t))
-        .id(id).h(26).pl(collapsed ? 6 : 170*26/186-7).pr(collapsed ? 6 : 185*26/186-5.5).gap(14).items_center().cursor_pointer()
-        .text_color(dim ? t.muted : t.foreground).hover(s => s.opacity(0.8)).tooltip(label)
-        .on_click(action).child(svg(`mods/neon-chrome/${icon}.svg`).size(14))
-        .when(!collapsed, el => el.child(div().flex_1().min_w(0).truncate().child(label))
-          .child(svg("mods/crew/icons/chevron-right.svg").size(11).text_color(t.accent)));
-      return v_flex().relative().size_full().bg(skin().chrome).border_t(2).border_color(skin().edge).pl(6).pr(collapsed ? 6 : 10).pt(5).pb(6).gap(4).text_size(12)
+      const row = (id, icon, label, dim, action) => h_flex()
+        .id(id).h(28).px(collapsed?6:12).gap(8).items_center().cursor_pointer().rounded(4)
+        .text_color(t.muted).hover(s => s.bg(t.hover).text_color(t.foreground)).tooltip(label)
+        .on_click(action).child(svg(`mods/neon-chrome/${icon}.svg`).size(14).flex_none())
+        .when(!collapsed, el => el.child(div().flex_1().min_w(0).truncate().child(label)));
+      return v_flex().relative().size_full().overflow_hidden().bg(t.chrome).border_t(1).border_color(t.border).px(4).py(4).gap(4).text_size(12)
         .child(row("settings", "settings", "Settings", false, () => run("app.settings"))
           .when(Boolean(updates().app.ready), el => el.child(div().absolute().top(2).right(5).size(5).rounded_full().bg(t.accent))))
         .child(row("machine", "plus", "Add machine", true, () => run("mod.open", { name: "machine-add" })))
-        .child(div().absolute().right(0).top(0).bottom(0).w(4).bg(skin().rail))
-        .child(div().absolute().right(1).top(0).bottom(0).w(1).bg(skin().shine));
+        .child(div().absolute().right(0).top(0).bottom(0).w(1).bg(t.border));
     }
     const brand = h_flex().size_full().pl(collapsed ? 9 : 12).pr(collapsed ? 9 : 10).gap(5).items_center().text_size(13.5)
       .when(window()?.platform === "macos" && !window()?.fullscreen && !collapsed, el => el.pl(76))

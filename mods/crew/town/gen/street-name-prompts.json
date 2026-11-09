@@ -1,0 +1,98 @@
+{
+  "tool": "built-in image_gen",
+  "use_case": "stylized-concept",
+  "assets": [
+    {
+      "name": "street-sign",
+      "prompt": "Use case: stylized-concept. Asset type: transparent PNG pixel-art prop for Neon Borough town, finished game sprite. Create ONE freestanding sidewalk street sign for a house, complete grounded object, composition aspect ratio 420:320. A wide rectangular empty dark navy signboard on TWO short sturdy graphite metal posts and small pavement-contact feet, slight elevated three-quarter view matching cyberpunk pixel-art town houses. The DISPLAY FACE must be front-facing, level, rectangular, completely blank, generously wide with about 3.5:1 usable width/height, inside a detailed but restrained beveled gunmetal frame edged with thin cyan neon and a few violet accents. The posts and feet must be clearly visible below the board so it reads as physical street furniture, not a floating UI panel. Board near upper-middle of image, base near bottom. Target safe empty name rectangle approximately left .16 top .24 right .84 bottom .49 of canvas; keep this area uniformly dark and unobstructed. Rich crisp hand-placed pixel clusters, dark navy and charcoal metal, small bolts, tiny warm service lights, no oversize ornament. Transparent background, clean cutout with opaque silhouette and crisp binary-ish alpha edges. No scene, background rectangle, ground slab, shadows outside silhouette, mist, soft glow fringe, letters, symbols, numbers, logos, people or robots. Small transparent margin, whole object in frame. Match a sophisticated cyan/violet pixel city with weathered metal and warm accent lamps. Output only the single sprite.",
+      "source": "~/.codex/generated_images/01a1b251-1d86-7722-9d8f-420004d8eb2e/exec-88145beb-a95d-4d46-91a0-a0358821c8fc.png",
+      "size": [
+        420,
+        320
+      ],
+      "panel_box": [
+        0.135,
+        0.265,
+        0.885,
+        0.46
+      ],
+      "source_size": [
+        1437,
+        1095
+      ],
+      "preserved_source": "polish-generated/street-sign-source.png",
+      "filter": "scale=420:320:flags=area,format=rgba,lut=a='if(gte(val,110),255,0)'",
+      "alpha_values": [
+        0,
+        255
+      ],
+      "art_bbox_pixels": [
+        26,
+        49,
+        394,
+        299
+      ],
+      "panel_box_pixels": [
+        57,
+        85,
+        372,
+        147
+      ],
+      "panel_box_order": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "panel_box_note": "Conservative safe rectangle inside the empty name face, excluding neon bevels.",
+      "sha256": "dd2a9817c0c9ca83e2ee7cf236c5f31bf6137bbff676372978c50192189af738",
+      "live_matches": true
+    },
+    {
+      "name": "town-monument",
+      "prompt": "Use case: stylized-concept. Asset type: transparent PNG pixel-art game prop for Neon Borough town. Create ONE freestanding town-name monument standing ON a plaza, full object composition roughly 900x480. A broad low cyberpunk marquee mounted firmly on a heavy layered stone-and-graphite metal PLINTH, with small integrated planters on both ends and tiny cyan pavement-facing lamps. Clearly physical architectural street furniture, elevated three-quarter view matching detailed pixel-art city buildings, not a floating UI panel. The main name display must face straight toward camera, level horizontal edges with slight depth visible on top and right. Large EMPTY uniformly dark navy panel across middle upper area, approx left .18 top .24 right .82 bottom .51 of canvas, clear rectangular safe area with generous room for software to render a town name. Thin cyan neon perimeter, few violet accent strips, tiny warm amber service lamps, rich restrained gunmetal edge details and small bolts. Planters below and outside the empty name panel, modest green foliage. Whole monument grounded with substantial plinth, no detached support, no canopy. Crisp pixel clusters and deliberate stepped silhouettes, premium cohesive pixel-city art, charcoal/navy metal and concrete with cyan/violet light. True transparent background, tight clean cutout, opaque silhouettes, binary-ish alpha edges, NO soft halo fringe, no broad shadow, no scene or landscape, no extra pavement slab beyond the monument base. No words, letters, glyphs, logos, numbers, people or robots. Entire object with small transparent margin, landscape 15:8 canvas. Empty name face is essential. Output one sprite.",
+      "source": "~/.codex/generated_images/01a1b251-1d86-7722-9d8f-420004d8eb2e/exec-0ce72474-43ff-425a-88ea-f2c4bae6d259.png",
+      "size": [
+        900,
+        480
+      ],
+      "panel_box": [
+        0.19,
+        0.28,
+        0.81,
+        0.52
+      ],
+      "source_size": [
+        1717,
+        916
+      ],
+      "preserved_source": "polish-generated/town-monument-source.png",
+      "filter": "scale=900:480:flags=area,format=rgba,lut=a='if(gte(val,110),255,0)'",
+      "alpha_values": [
+        0,
+        255
+      ],
+      "art_bbox_pixels": [
+        11,
+        51,
+        890,
+        444
+      ],
+      "panel_box_pixels": [
+        171,
+        134,
+        729,
+        250
+      ],
+      "panel_box_order": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "panel_box_note": "Conservative safe rectangle inside the empty name face, excluding neon bevels.",
+      "sha256": "62c19495369846aaf896b9a5f72b3c16e70da3645445f2e5d5a01b16ac684850",
+      "live_matches": true
+    }
+  ]
+}

@@ -29,7 +29,9 @@ WAIT_COMMANDS = (
     (re.compile(r"\bkubectl\s+rollout\s+status\b|\b(deploy|release)\b.*--wait", re.S), "deploy"),
     (re.compile(r"\b(npm|pnpm|yarn|bun)\s+(run\s+)?test\b|\b(pytest|vitest|jest|playwright\s+test|phpunit|rspec)\b"
                 r"|\b(cargo|go|dotnet|mix|swift)\s+test\b|\bgradlew?\b.*\btest\b|\bmvn\b.*\b(test|verify)\b"), "tests"),
-    (re.compile(r"(^|[;&|]\s*)(sleep|Start-Sleep|timeout\s+/t)\s+\d", re.M), "timer"),
+    # Only a long pause counts (30 s or more); scripts sleep a second or two all the time.
+    (re.compile(r"(^|[;&|]\s*)(sleep\s+(\d{3,}|[3-9]\d|\d+(\.\d+)?[mh])\b|Start-Sleep\s+(-Seconds\s+)?([3-9]\d|\d{3,})\b"
+                r"|Start-Sleep\s+-Minutes\b|timeout\s+/t\s+([3-9]\d|\d{3,}))", re.M), "timer"),
 )
 WAIT_TOOLS = {"Monitor": "watch", "wait_agent": "agent", "TaskOutput": "agent"}
 # The end of a turn that says it waits: "waiting for CI", "I'll check back once the PR is merged".

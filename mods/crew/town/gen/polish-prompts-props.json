@@ -1,0 +1,39 @@
+{
+  "tool": "built-in image_gen",
+  "assets": [
+    {
+      "name": "town-gate",
+      "source": "exec-bb7cb467-14a5-44ce-9a17-54ebca6ed295.png",
+      "prompt": "Use case: stylized-concept. Neon Borough pixel-art town production sprite, one transparent PNG district gateway sign. A low wide freestanding cyberpunk gateway arch / marquee, proportion about 900x260, front elevation with slight top visible matching isometric pixel town props. Two short chunky dark graphite metal support feet at the outer sides, detailed restrained bolts, cyan neon edging with tiny violet accents. Large centered EMPTY flat dark navy name plate occupying middle 70% of width and 45% height so software can draw the district name later. Keep name plate perfectly blank, no letters, symbols, holograms, logos or texture clutter within it. Detailed crisp pixel clusters, rich metal edge shading, warm tiny service lights. Transparent background all around object, clean opaque cutout, no ground slab, no scene, no sprawling glow, complete object in frame with small margins. Landscape 3.5:1 composition.",
+      "size": [
+        900,
+        260
+      ],
+      "filter": "scale=900:260:flags=lanczos",
+      "preserved_source": "polish-generated/town-gate-source.png",
+      "sha256": "07a94f2f495afb47cdc25c81cc72e8d444947ba5993cda6dcb1784ae11fdaefe",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "live_matches": true
+    },
+    {
+      "name": "empty-lot",
+      "source": "exec-f6808bed-872b-470a-b7de-fcf9689f83e6.png",
+      "prompt": "Use case: stylized-concept. One transparent PNG game prop for Neon Borough cyberpunk pixel-art town, unused empty building lot, orthographic elevated three-quarter view like pixel city houses. A modest rectangular dark asphalt plot edged by low weathered metal mesh fence on back and sides, open front. One small freestanding holographic violet and cyan sign at back-right with an entirely EMPTY dark translucent face (no words, letters or symbols). A few restrained tufts of grass, concrete foundation marks and utility conduit suggest a vacant ready-to-build plot. Rich crisp small pixel clusters, dark navy/charcoal, subtle cyan light, subdued so buildings remain heroes. No house, people, robots, vehicle, large text, background landscape. Complete isolated lot including pavement footprint with clean silhouette on true transparent background, centered 4:3 canvas, about480x360 output, small transparent margin. No soft halo outside silhouette, no drop shadow rectangle.",
+      "size": [
+        480,
+        360
+      ],
+      "filter": "scale=480:360:flags=lanczos",
+      "preserved_source": "polish-generated/empty-lot-source.png",
+      "sha256": "0414d2b847517b69dfa7331e90375194f3298e0a9316412cff1a24626d3e6b88",
+      "alpha_extrema": [
+        0,
+        255
+      ],
+      "live_matches": true
+    }
+  ]
+}

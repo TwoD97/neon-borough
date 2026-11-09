@@ -1,3 +1,4 @@
+import { compactCards, densityToggle } from "./card-density.js";
 import { skin, artText, mix } from "./theme-tokens.js";
 import { bevel } from "./controls.js";
 import { providerFrame, providerLook, providerGeometry, providerHeight } from "./provider-skin.js";
@@ -351,6 +352,7 @@ export default class Agents extends View {
     if (props()?.sortMenu) return this.sortMenu(t);
     this.wantRobots = new Map(); this.drawnRobots = new Set();
     const collapsed = narrow();
+    const compact = compactCards();
     castNew(agents());
     const sort = sortOf();
     const filter = filterOf();
@@ -382,13 +384,13 @@ export default class Agents extends View {
     const nestOf = (a) => 0;
     const foldMotion = shared("neon.motion") !== false;
     const agentWidth = Math.max(158, (find(layout(), "sidebar")?.size?.px ?? 360) - 22);
-    const agentHeight = collapsed ? 44 : providerHeight(agentWidth);
+    const agentHeight = collapsed ? 44 : providerHeight(agentWidth,compact);
     // Artwork and text share a measured card height, including narrow sidebars.
     const artTail = 0;
-    const foldBody = (id, entries, open, leading = 7, trailing = 0, stateKey = id) => {
-      const fullHeight = entries.length ? leading + trailing + entries.reduce((height, entry) => height + entry.height, 0) + Math.max(0, entries.length - 1) * 7 : 0;
+    const foldBody = (id, entries, open, leading = 8, trailing = 0, stateKey = id) => {
+      const fullHeight = entries.length ? leading + trailing + entries.reduce((height, entry) => height + entry.height, 0) + Math.max(0, entries.length - 1) * 8 : 0;
       const inner = v_flex().id(`${id}-content`).relative().top(open ? 0 : -Math.min(10, fullHeight))
-        .w_full().h(fullHeight).flex_none().pt(leading).pb(trailing).gap(7).children(entries.map(entry => entry.el))
+        .w_full().h(fullHeight).flex_none().pt(leading).pb(trailing).gap(8).children(entries.map(entry => entry.el))
         .when(!open && (!foldMotion || !this.foldAnimations?.has(stateKey)), el => el.invisible())
         .when(foldMotion, el => el.transition("top", {duration:220,easing:"ease-in-out"}));
       const element = div().id(id).relative().w_full().h(open ? fullHeight : 0).min_h(0).flex_none().overflow_hidden()
@@ -494,15 +496,16 @@ export default class Agents extends View {
       const task = more || name;
       const state = STATUS_WORD[a.status] || "Idle";
       const cw = Math.max(158, (find(layout(), "sidebar")?.size?.px ?? 360) - 22);
-      const look = providerLook(pv), geometry = providerGeometry(pv,cw);
+      const look = providerLook(pv), geometry = providerGeometry(pv,cw,t,compact);
       const scale = Math.min(1.18,Math.max(1,cw/300));
       const tone = look.onLight ? (a.status === "blocked" ? t.warning : t[a.status] || t.dim) : mix(a.status === "blocked" ? t.warning : t[a.status] || t.dim,"#e6edf7",.35);
       const metadata = [full ? a.space_name : null, shownMachine].filter(Boolean).join(" · ");
       const activity = waitingActivity(a, reportedActivity(a, all, now));
-      const showActivity = activity.reported || a.status === "working" || a.status === "blocked";
-      return providerFrame(div(), pv, cw, t, a)
+      const showActivity = activity.reported && !compact;
+      const statusInHeader = byPriority && !isPinned && rankOf(a) === RANK[a.status];
+      return providerFrame(div(), pv, cw, t, a, compact)
         .id(`ag-${a.address}`).w_full().h(agentHeight).flex_none().cursor_pointer()
-        .tooltip(`${ch.name} · ${pv.name} · ${state}\nConversation: ${task}\nActivity: ${activity.title}\n${metadata}\nRight-click for crew profile`)
+        .tooltip(`${ch.name} · ${pv.name} · ${state}\nConversation: ${task}${activity.reported ? `\nActivity: ${activity.title}` : ""}\n${metadata}\nRight-click for crew profile`)
         .on_hover((on, cx) => {
           if (on) this.hovered = a.address;
           else if (this.hovered === a.address) this.hovered = null;
@@ -517,28 +520,28 @@ export default class Agents extends View {
           .when(subs.length > 0, el => el.on_click((_e,cx) => {cx.stop_propagation();this.toggle(a.address,cx);cx.notify();}))
           .child(this.robot(a)))
         .child(v_flex().absolute().left(geometry.textLeft).right(geometry.textRight)
-          .top(geometry.textTop).bottom(geometry.textBottom).justify_center().gap(3*scale)
-          .child(h_flex().h(13*scale).min_w(0).gap(4).items_center()
-            .child(div().flex_1().min_w(0).truncate().font_bold().text_size(10.5*scale).text_color(look.onLight?mix(ch.color,"#102030",.57):ch.color).child(ch.name))
+          .top(geometry.textTop).bottom(geometry.textBottom).justify_center().gap(4).line_height(1)
+          .child(h_flex().h(14).flex_none().min_w(0).gap(4).items_center()
+            .child(div().flex_1().min_w(0).truncate().font_semibold().text_size(cw>=260?13:12).text_color(look.onLight?mix(ch.color,"#102030",.57):ch.color).child(ch.name))
             .when(subs.length > 0, el => el.child(fold(a,subs).text_color(look.muted)))
             .when(this.hovered === a.address, el => el.child(pin.text_color(look.muted)))
-            .child(div().min_w(0).truncate().text_size(9.5*scale).text_color(tone).tooltip(state)
+            .when(!statusInHeader, el => el.child(div().flex_none().text_size(11).text_color(tone).tooltip(state)
               .when(a.status === "blocked" && shared("neon.motion") !== false, el => el.loop("opacity",{from:.55,to:1,period:2200}))
-              .child(cw<205 ? (a.status==="blocked" ? "You" : a.status==="waiting" ? "Wait" : a.status==="working" ? "Work" : state) : state)))
-          .child(h_flex().h(14*scale).min_w(0).gap(3).items_center()
-            .child(div().flex_1().min_w(0).truncate().text_size(11.5*scale).text_color(idle ? look.muted : look.ink)
+              .child(cw<205 ? (a.status==="blocked" ? "You" : a.status==="waiting" ? "Wait" : a.status==="working" ? "Work" : state) : state))))
+          .child(h_flex().h(14).flex_none().min_w(0).gap(4).items_center()
+            .child(div().flex_1().min_w(0).truncate().text_size(cw>=260?13:12).text_color(idle ? look.muted : look.ink)
               .tooltip(`Conversation: ${task}`).child(task))
-            .child(div().id(`rename-chat-${a.address}`).size(13).flex_none().flex().items_center().justify_center().cursor_pointer()
+            .child(div().id(`rename-chat-${a.address}`).size(20).flex_none().flex().items_center().justify_center().cursor_pointer()
               .text_color(look.accent).hover(el=>el.text_color(look.ink)).tooltip("Rename chat (this tab)")
               .on_mouse_down("left",(_e,cx)=>cx.stop_propagation())
               .on_click((_e,cx)=>{cx.stop_propagation();openOverlay({mod:"neon-rename",kind:"dialog",frame:"none",width:440,height:220,props:{tab:a.tab,name:task}});})
               .child(svg("mods/crew/icons/edit.svg").size(11))))
-          .child(div().h(12*scale).min_w(0).truncate().text_size(10.5*scale).text_color(a.status === "waiting" ? t.waiting : showActivity && activity.reported ? look.accent : look.muted)
-            .tooltip(showActivity ? `Activity: ${activity.detail}` : metadata).child(showActivity ? activity.title : metadata))
-          .child(h_flex().h(12*scale).min_w(0).gap(4).items_center()
+          .when(showActivity, el => el.child(div().h(14).flex_none().min_w(0).truncate().text_size(11.5).text_color(a.status === "waiting" ? t.waiting : look.muted)
+            .tooltip(activity.detail).child(activity.title)))
+          .child(h_flex().h(12).flex_none().min_w(0).gap(4).items_center()
             .when(Boolean(a.program?.icon), el=>el.child(icon(a.program,12*scale,look.accent)))
-            .child(div().flex_1().min_w(0).truncate().text_size(10*scale).text_color(look.accent).child(pv.name))
-            .when(Boolean(when) && cw>=220, el=>el.child(div().flex_none().text_size(9*scale).text_color(look.dim).child(duration(now-when))))));
+            .child(div().flex_1().min_w(0).truncate().text_size(11).text_color(look.muted).child(pv.name))
+            .when(Boolean(when) && cw>=220, el=>el.child(div().flex_none().text_size(10).text_color(look.muted).child(duration(now-when))))));
 
 
     };
@@ -596,7 +599,7 @@ export default class Agents extends View {
     };
     const groupNode = g => {
       const members = g.members.map((a,i) => withKids(a,i));
-      const body = foldBody(`agent-group-${g.id}`,members,!this.folded.has(g.id),7,artTail,g.id);
+      const body = foldBody(`agent-group-${g.id}`,members,!this.folded.has(g.id),8,artTail,g.id);
       return {el:v_flex().id(`agent-section-${g.id}`).w_full().flex_none().child(header(g)).child(body.el),height:30+body.height};
     };
     let rows;
@@ -613,15 +616,15 @@ export default class Agents extends View {
         // Their calculated layout closes upward beneath the header instead of vanishing.
         const children = [];
         while (groups[index+1]?.under === group.machine) children.push(groupNode(groups[++index]));
-        const body = foldBody(`agent-machine-${group.machine}`,children,!this.folded.has(group.id),7,0,group.id);
+        const body = foldBody(`agent-machine-${group.machine}`,children,!this.folded.has(group.id),8,0,group.id);
         rows.push(v_flex().id(`agent-machine-section-${group.machine}`).w_full().flex_none().child(header(group)).child(body.el));
       }
     }
 
     return v_flex().relative()
       .size_full()
-      .min_h(0)
-      .bg((skin().light ? skin().chrome : skin().chrome+"60"))
+      .min_h(0).overflow_hidden()
+      .bg(t.chrome)
       .border_t(0)
       .border_color(skin().edge)
       .text_size(13)
@@ -635,6 +638,7 @@ export default class Agents extends View {
             .justify_between()
             .gap(8)
             .child(div().flex_1().min_w(0).truncate().text_size(11).font_semibold().text_color(skin().accent).child(currentPage() ? `AGENTS · ${currentPage().name}` : "AGENTS"))
+            .child(densityToggle("agents-density"))
             .child(
               bevel(h_flex().id("ag-sort").h(26).px(8).gap(5).items_center().flex_none(),filter.id!=="all",groupControlPalette(t))
                 .text_size(11)
@@ -657,7 +661,7 @@ export default class Agents extends View {
         .child(div().id("compact-agent-view").w(28).h(22).flex().items_center().justify_center().cursor_pointer()
           .tooltip(`Agents · ${list.length} shown\n${filter.label} · Click for view options`).on_click(() => this.openView())
           .child(svg("mods/crew/robot.svg").size(15).text_color(skin().accent)))))
-      .child(v_flex().id("ag-list").flex_1().min_h(0).pl(collapsed ? 0 : 10).pr(collapsed ? 4 : 12).gap(collapsed ? 4 : 7).overflow_y_scrollbar().mode("always").children(rows))
+      .child(v_flex().id("ag-list").flex_1().min_h(0).pl(collapsed ? 0 : 10).pr(collapsed ? 4 : 12).pb(16).gap(8).overflow_y_scrollbar().mode("always").children(rows))
       .when(collapsed, (el) =>
         el.child(
           h_flex()
@@ -675,9 +679,7 @@ export default class Agents extends View {
             ),
         ),
       )
-      .child(div().absolute().right(0).top(0).bottom(0).w(4).bg(skin().rail))
-      .child(div().absolute().right(1).top(0).bottom(0).w(1).bg(skin().shine))
-      .child(div().absolute().right(4).top(40).w(1).h(34).bg(skin().accent))
+      .child(div().absolute().right(0).top(0).bottom(0).w(1).bg(t.border))
       .child(sectionSeparator());
   }
 }

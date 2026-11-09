@@ -1,0 +1,134 @@
+{
+  "mode": "built-in image_gen",
+  "assets": [
+    {
+      "name": "skyline-harbor",
+      "generated_source": "~/.codex\\generated_images\\01a1b27f-088d-7b31-bd41-f5ea3b082049\\exec-385a5159-8054-43c8-8b5b-0b74208c3732.png",
+      "source": "polish-generated/skyline-harbor-source.png",
+      "output": "skyline-harbor.png",
+      "prompt": "Original high-quality pixel-art background panorama for a cyberpunk town game. Crisp deliberate pixels, layered architectural detail, deep midnight navy shadows, no readable text, no letters, no logos, no UI, no characters, no close foreground props. A wide side/front skyline viewed straight across the district. The whole image must tile continuously LEFT TO RIGHT: identical horizon and illumination at both side edges, continuous cloud bands, no framing border or vignette, no unique giant landmark cut in half at either edge. Fill the full canvas; opaque image. Composition: sky in upper quarter, layered district silhouettes and neon windows in middle half, bottom quarter fading gradually into uniform very dark ink navy #101323 so town foreground can sit in front. Output panoramic1536\u00d7512, aspect3:1. Keep the skyline detail readable but calmer and darker than foreground buildings. District: neon harbor. Cyan-lit cargo docks, distant container stacks, angular gantry cranes and slim harbor control towers, restrained cyan #49dcd7 with occasional amber safety lights. Quiet dark water reflections between the docks and the bottom fade. A few low maritime structures and distant mist; no boats as close focal objects. Distinct spacious harbor silhouette, cool teal atmosphere.",
+      "packaging": {
+        "size": [
+          1536,
+          512
+        ],
+        "source_size": [
+          2172,
+          724
+        ],
+        "source_crop_height": 668,
+        "mode": "RGB",
+        "horizontal_seam_mae": 1.2617,
+        "median_adjacent_column_mae": 2.1055,
+        "raw_horizontal_seam_mae": 4.5847,
+        "mean_luma": 43.7924,
+        "sha256": "79eff6a3eabcb833910e470c06b684cd181b6c44fe2fac265d8098a0cbefc06c",
+        "ffmpeg_filter": "[0:v]crop=iw:668:0:0,scale=1664:512:flags=neighbor,format=gbrp,split=3[body][end][start];[body]crop=1408:512:128:0[middle];[end]crop=128:512:1536:0[last];[start]crop=128:512:0:0[first];[last][first]blend=all_expr='A*(1-X/127)+B*(X/127)'[join];[middle][join]hstack=inputs=2,format=rgb24[out]",
+        "tile_axes": "horizontal only"
+      }
+    },
+    {
+      "name": "skyline-uptown",
+      "generated_source": "~/.codex\\generated_images\\01a1b27f-088d-7b31-bd41-f5ea3b082049\\exec-bb40a7f1-1f2d-4096-ab7a-03cbe62f2d36.png",
+      "source": "polish-generated/skyline-uptown-source.png",
+      "output": "skyline-uptown.png",
+      "prompt": "Original high-quality pixel-art background panorama for a cyberpunk town game. Crisp deliberate pixels, layered architectural detail, deep midnight navy shadows, no readable text, no letters, no logos, no UI, no characters, no close foreground props. A wide side/front skyline viewed straight across the district. The whole image must tile continuously LEFT TO RIGHT: identical horizon and illumination at both side edges, continuous cloud bands, no framing border or vignette, no unique giant landmark cut in half at either edge. Fill the full canvas; opaque image. Composition: sky in upper quarter, layered district silhouettes and neon windows in middle half, bottom quarter fading gradually into uniform very dark ink navy #101323 so town foreground can sit in front. Output panoramic1536\u00d7512, aspect3:1. Keep the skyline detail readable but calmer and darker than foreground buildings. District: sophisticated uptown. Tall cool-blue glass towers, a few elegant skybridges, pale cyan window grids and restrained violet holographic geometric signs with NO legible symbols or text. Tiered rooftops and antenna pinlights, dark blue nighttime haze; varied heights with graceful negative space. Premium futuristic metropolitan district, no excessive pink glow.",
+      "packaging": {
+        "size": [
+          1536,
+          512
+        ],
+        "source_size": [
+          2172,
+          724
+        ],
+        "source_crop_height": 668,
+        "mode": "RGB",
+        "horizontal_seam_mae": 6.0742,
+        "median_adjacent_column_mae": 3.6152,
+        "raw_horizontal_seam_mae": 6.5189,
+        "mean_luma": 44.342,
+        "sha256": "f357015ab8b9f9cb28000a779128c1f1ab90883fa7a5d1d5e9cff953d6d78b04",
+        "ffmpeg_filter": "[0:v]crop=iw:668:0:0,scale=1664:512:flags=neighbor,format=gbrp,split=3[body][end][start];[body]crop=1408:512:128:0[middle];[end]crop=128:512:1536:0[last];[start]crop=128:512:0:0[first];[last][first]blend=all_expr='A*(1-X/127)+B*(X/127)'[join];[middle][join]hstack=inputs=2,format=rgb24[out]",
+        "tile_axes": "horizontal only"
+      }
+    },
+    {
+      "name": "skyline-industrial",
+      "generated_source": "~/.codex\\generated_images\\01a1b27f-088d-7b31-bd41-f5ea3b082049\\exec-86637bbd-bdbf-451a-95b5-69bdc034e983.png",
+      "source": "polish-generated/skyline-industrial-source.png",
+      "output": "skyline-industrial.png",
+      "prompt": "Original high-quality pixel-art background panorama for a cyberpunk town game. Crisp deliberate pixels, layered architectural detail, deep midnight navy shadows, no readable text, no letters, no logos, no UI, no characters, no close foreground props. A wide side/front skyline viewed straight across the district. The whole image must tile continuously LEFT TO RIGHT: identical horizon and illumination at both side edges, continuous cloud bands, no framing border or vignette, no unique giant landmark cut in half at either edge. Fill the full canvas; opaque image. Composition: sky in upper quarter, layered district silhouettes and neon windows in middle half, bottom quarter fading gradually into uniform very dark ink navy #101323 so town foreground can sit in front. Output panoramic1536\u00d7512, aspect3:1. Keep the skyline detail readable but calmer and darker than foreground buildings. District: industrial quarter. Warm amber and copper-lit refinery towers, squat factories, pipe bridges, cylindrical tanks and a few smokestacks with contained dark steam. Cool navy silhouettes balance amber windows and tiny red safety beacons. Not burning, no flames or explosion. Dense mechanical skyline, orange/copper atmosphere distinct from the cyan harbor and blue uptown.",
+      "packaging": {
+        "size": [
+          1536,
+          512
+        ],
+        "source_size": [
+          2172,
+          724
+        ],
+        "source_crop_height": 668,
+        "mode": "RGB",
+        "horizontal_seam_mae": 2.3223,
+        "median_adjacent_column_mae": 2.3073,
+        "raw_horizontal_seam_mae": 12.7169,
+        "mean_luma": 33.2355,
+        "sha256": "53cbb7967fb2f6a4f7eff6377532c50c00e381ed49b3342f9c68fe6406238b0f",
+        "ffmpeg_filter": "[0:v]crop=iw:668:0:0,scale=1664:512:flags=neighbor,format=gbrp,split=3[body][end][start];[body]crop=1408:512:128:0[middle];[end]crop=128:512:1536:0[last];[start]crop=128:512:0:0[first];[last][first]blend=all_expr='A*(1-X/127)+B*(X/127)'[join];[middle][join]hstack=inputs=2,format=rgb24[out]",
+        "tile_axes": "horizontal only"
+      }
+    },
+    {
+      "name": "plaza-seamless",
+      "generated_source": "~/.codex\\generated_images\\01a1b27f-088d-7b31-bd41-f5ea3b082049\\exec-71ffbdc5-b71d-480e-b763-3cf7882f08ab.png",
+      "source": "polish-generated/plaza-seamless-source.png",
+      "output": "plaza-seamless.png",
+      "prompt": "Original pixel-art cyberpunk plaza pavement texture strip for a town game. Requested output1536\u00d7384, aspect4:1. Top-down to very slightly oblique view matching game ground tiles; no vanishing point. Opaque full canvas, predominantly very dark midnight navy/charcoal paving, clearly DARKER and quieter than a neon roadway. Rectangular worn stone/metal pavers, tiny seams, occasional muted cyan and warm amber light pools, a few restrained damp reflections. Sparse small cyberpunk planters and two low benches only near the upper-quarter margin, away from left/right seams; keep the central and lower75% broadly empty unobstructed paving for house fronts, station props and walking characters. No people, robots, cars, roads, lane markings, text, letters, logos, UI or huge props. Crisp high-quality pixel art. Texture repeats LEFT TO RIGHT with matched tile spacing, brightness and pavement alignment at side edges, no border/vignette. Also keep top/bottom pavement color compatible. Sparse understated details; calm empty ground is the main subject.",
+      "packaging": {
+        "size": [
+          1536,
+          384
+        ],
+        "source_size": [
+          2172,
+          724
+        ],
+        "source_crop_height": 501,
+        "mode": "RGB",
+        "horizontal_seam_mae": 0.7622,
+        "median_adjacent_column_mae": 0.9557,
+        "raw_horizontal_seam_mae": 2.2385,
+        "mean_luma": 25.2518,
+        "sha256": "5b72049add879369ec592a33f455b6d9fc8ff4d3929f74809583f795882a92f8",
+        "ffmpeg_filter": "[0:v]crop=iw:501:0:0,scale=1664:384:flags=neighbor,format=gbrp,split=3[body][end][start];[body]crop=1408:384:128:0[middle];[end]crop=128:384:1536:0[last];[start]crop=128:384:0:0[first];[last][first]blend=all_expr='A*(1-X/127)+B*(X/127)'[join];[middle][join]hstack=inputs=2,format=rgb24[out]",
+        "tile_axes": "horizontal only"
+      }
+    }
+  ],
+  "processing": {
+    "tool": "FFmpeg",
+    "script": "polish-generated/pack-skylines.py",
+    "method": "Aspect-preserving top crop; nearest-neighbor normalization;128px horizontal overlap blend of generated final/initial strips; retained middle plus blend produces1536px loop. All source artwork preserved separately.",
+    "validation": "Two horizontally repeated tiles and native join crops inspected; seam metrics compare RGB edge jumps. Vertical tiling is not asserted."
+  },
+  "validation_review": {
+    "preview_root": "~/.config\\herdr-backups",
+    "tiled_previews": [
+      "skyline-harbor-tiled-review.png",
+      "skyline-uptown-tiled-review.png",
+      "skyline-industrial-tiled-review.png",
+      "plaza-seamless-tiled-review.png"
+    ],
+    "join_previews": [
+      "skyline-harbor-join-review.png",
+      "skyline-uptown-join-review.png",
+      "skyline-industrial-join-review.png",
+      "plaza-seamless-join-review.png"
+    ],
+    "visual_result": "Two repeated tiles inspected for all four assets; native-size join crops inspected for uptown, industrial and plaza. No hard vertical boundary observed.128px overlap introduces a small blended architecture/paver region; this is packaged horizontal continuity, not a claim of pixel-identical generated edges.",
+    "plaza_mean_luma": 25.2518,
+    "existing_road_mean_luma": 53.22,
+    "vertical_tiling": "Not required or validated; these are horizontal strips."
+  }
+}

@@ -23,6 +23,7 @@ import { View, div, image, svg } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
 import { agents, spaces, focused, run, theme, props, openOverlay, closeOverlay, layout, window as appWindow, setShared, shared, settings, terminals } from "herdr";
 import { renderTown, townAspect, whoList, townModel, ALL_HOUSES, setHouse } from "./town.js";
+import { townScreen } from "./town-screen.js";
 import { spriteEl, frameFor, townTick, townFrames } from "./town-actors.js";
 import { CHARACTERS, characterOf, provider, spriteFor, still, castNew, recast, line, actOf, stepRobots } from "./cast.js";
 import { keyOf, label as machineLabel, ordered as orderMachines, inPage, currentPage, pages } from "./machines.js";
@@ -83,99 +84,31 @@ export default class Crew extends View {
 
   mapWidth() { return this.townGeometry().scene; }
 
-  control(id, label, action, t, active = false) {
-    return bevel(h_flex().id(id).h(30).px(10).gap(6).flex_none().items_center(), active)
-      .text_size(11).text_color(active ? t.accent : t.muted).hover(s => s.opacity(0.85).text_color(t.foreground))
+  control(id, label, action, t, active = false, large = false) {
+    return bevel(h_flex().id(id).h(large ? 34 : 30).px(large ? 14 : 10).gap(6).flex_none().items_center().justify_center(), active)
+      .text_size(large ? 13 : 11).when(large, e => e.font_semibold()).text_color(active ? t.foreground : t.muted).hover(s => s.opacity(0.85).text_color(t.foreground))
       .on_click(action).child(label);
   }
 
   header(t) {
     const full = props()?.full || props()?.tab;
-    return h_flex().h(full ? 64 : 48).flex_none().px(full ? 24 : 12).gap(10).items_center().bg(t.chrome).border_b(1).border_color(t.border)
-      .child(svg("mods/crew/robot.svg").size(22).text_color(t.accent))
-      .child(v_flex().flex_1().min_w(0).gap(2)
-        .child(div().font_bold().text_size(full ? 18 : 14).child(full ? "NEON BOROUGH" : "Crew"))
-        .when(full, el => el.child(div().text_size(10).text_color(t.dim).child("YOUR AGENTS. ONE LIVING CITY."))))
-      .when(full, el => el.child(this.control("mode-town", "Town", (_e,cx) => {this.mode="town";if(props()?.full) run("layout.select",{stack:"root",child:"crew-screen"});cx.notify();},t,this.mode==="town"))
-        .child(this.control("mode-crew", "Cards", (_e,cx) => {this.mode="crew";if(props()?.full) run("layout.select",{stack:"root",child:"crew-cards"});cx.notify();},t,this.mode==="crew")))
-      .child(this.control("crew-expand", full ? "Back to workspace" : "Open town", () => run("layout.select", {stack:"root",child:full ? "desktop" : "crew-screen"}),t))
-      .when(full && appWindow()?.buttons, el => el.child(this.control("crew-min", "−",()=>run("window.minimize"),t)).child(this.control("crew-max", "□",()=>run("window.maximize"),t)));
+    return h_flex().h(full ? 64 : 48).flex_none().px(full ? 24 : 12).gap(full ? 12 : 10).items_center().bg(t.chrome).border_b(1).border_color(t.border)
+      .child(svg("mods/crew/robot.svg").size(full ? 26 : 22).text_color(t.accent))
+      .child(v_flex().flex_1().min_w(0).gap(3)
+        .child(div().font_bold().text_size(full ? 18 : 14).child(full ? "Neon Borough" : "Crew"))
+        .when(full, el => el.child(div().text_size(11.5).text_color(t.muted).child("Your agents, one living city"))))
+      // Town and Cards are one choice: a segmented pair, then the way back, apart from both.
+      .when(full, el => el.child(h_flex().gap(4).flex_none()
+        .child(this.control("mode-town", "Town", (_e,cx) => {this.mode="town";if(props()?.full) run("layout.select",{stack:"root",child:"crew-screen"});cx.notify();},t,this.mode==="town",true))
+        .child(this.control("mode-crew", "Cards", (_e,cx) => {this.mode="crew";if(props()?.full) run("layout.select",{stack:"root",child:"crew-cards"});cx.notify();},t,this.mode==="crew",true)))
+        .child(div().w(1).h(22).mx(4).bg(t.border)))
+      .child(this.control("crew-expand", full ? "Back to workspace" : "Open town", () => run("layout.select", {stack:"root",child:full ? "desktop" : "crew-screen"}),t,false,full))
+      .when(full && appWindow()?.buttons, el => el.child(h_flex().gap(4).flex_none().ml(4)
+        .child(this.control("crew-min", "—",()=>run("window.minimize"),t,false,true).w(40))
+        .child(this.control("crew-max", "▢",()=>run("window.maximize"),t,false,true).w(40))));
   }
 
-  townView(t) {
-    castNew(agents());
-    const g=this.townGeometry();
-    // Detailed activity belongs in the roster; buildings retain live status FX.
-    this.activityInRoster=true;
-    const {el,model}=renderTown(this,t,g.scene,g.sceneHeight);
-    const rank={blocked:0,working:1,waiting:2,done:3,idle:4};
-    const list=model.homes.flatMap(home=>home.agents).sort((a,b)=>(rank[a.status]??4)-(rank[b.status]??4));
-    const records=terminals();
-    const count=status=>list.filter(a=>a.status===status).length;
-    const meter=(label,value,color)=>h_flex().gap(5).items_center().flex_none()
-      .child(div().size(4).bg(color)).child(div().text_size(10).text_color(t.muted).child(`${value} ${label}`));
-    const resident=a=>{
-      const ch=characterOf(a.address),pv=provider(a),activity=waitingActivity(a,reportedActivity(a,records));
-      const cw=g.wide?g.roster-4:residentWidth,look=providerGeometry(pv,cw,t);
-      const stateColor=t[a.status]||t.dim;
-      const tone=look.onLight?stateColor:mix(stateColor,"#e6edf7",.35);
-      return providerFrame(div(),pv,cw,t,a).id(`town-resident-${a.address}`).w(cw).h(look.height).flex_none().cursor_pointer()
-        .tooltip(`${ch.name} · ${pv.name} · ${a.space_name||"Workspace"}\n${a.title||a.tab_name||ch.role}\n${activity.detail||activity.title}\nSelect to focus · Right-click for profile`)
-        .on_click(()=>{run("layout.select",{stack:"root",child:"desktop"});run("agent.focus",{terminal:a.address});})
-        .on_mouse_down("right",(_e,cx)=>{cx.stop_propagation();this.profile(a.address);})
-        .child(div().absolute()
-          .left(look.portraitX-look.portraitHeight*.375).top(look.portraitY-look.portraitHeight*.5)
-          .w(look.portraitHeight*.75).h(look.portraitHeight)
-          .child(spriteEl(this,`still:${a.address}`,frameFor(a,null,Date.now(),this.motionOn()))))
-        .child(v_flex().absolute().left(look.textLeft).right(look.textRight).top(look.textTop).bottom(look.textBottom).justify_center().gap(3)
-          .child(h_flex().h(13).min_w(0).gap(4).items_center()
-            .child(div().flex_1().min_w(0).truncate().font_bold().text_size(11).text_color(look.onLight?mix(ch.color,"#102030",.57):ch.color).child(ch.name))
-            .child(div().size(3).flex_none().bg(tone).when(this.motionOn()&&a.status==="blocked",el=>el.loop("opacity",{from:.55,to:1,period:2200})))
-            .child(div().text_size(9).text_color(tone).child(STATUS_WORD[a.status]||a.status)))
-          .child(div().h(14).min_w(0).truncate().text_size(11).text_color(look.ink).child(a.title||a.tab_name||ch.role))
-          .child(div().h(12).min_w(0).truncate().text_size(10).text_color(a.status==="waiting"?t.waiting:activity.reported?look.accent:look.muted).child(activity.title))
-          .child(div().h(12).min_w(0).truncate().text_size(9).text_color(look.dim).child(`${a.space_name||"Workspace"} · ${pv.name}`)))
-        .when(a.focused,el=>el.child(div().absolute().left(look.textLeft).right(look.textRight).bottom(look.height*.16).h(1).bg(look.accent).opacity(.7)));
-    };
-    const page=currentPage()?.name||"All districts";
-    const toolbar=h_flex().w_full().min_w(0).flex_none().px(20).py(10).gap(8).flex_wrap().items_center()
-      .child(div().text_size(10).font_bold().text_color(t.dim).child("DISTRICT"))
-      .children([{id:null,name:"All"},...pages()].map(p=>this.control(`town-${p.id}`,p.name,()=>{this.district=0;setShared("machines.page",p.id);},t,p.id===(currentPage()?.id??null))))
-      .when(model.districts>1,node=>node.children(Array.from({length:model.districts},(_,i)=>this.control(`district-${i}`,`${i+1}`,(_e,cx)=>{this.district=i;cx.notify();},t,i===model.district))))
-      .child(div().flex_1())
-      .child(this.control("town-motion",this.motionOn()?"Motion on":"Motion off",(_e,cx)=>{
-        if(shared("neon.motion")===false){setShared("neon.motion",true);this.motion=true;}else this.motion=!this.motion;
-        cx.notify();
-      },t,this.motionOn()));
-    const rosterColumns=g.wide?1:Math.max(1,Math.min(3,Math.floor((g.width+8)/300)));
-    const residentWidth=Math.floor((g.width-8*(rosterColumns-1))/rosterColumns);
-    const residentList=(g.wide?v_flex():h_flex().flex_wrap()).id("town-residents").w_full().min_w(0).min_h(0).gap(8)
-      .when(g.wide,e=>e.flex_1().overflow_y_scrollbar().pr(4))
-      .children(list.map(a=>resident(a).when(!g.wide,e=>e.w(residentWidth))))
-      .when(!list.length,e=>e.child(div().p(14).text_size(12).text_color(t.muted).child("Start an agent in this district to welcome its first resident.")));
-    const roster=v_flex().w(g.wide?g.roster:g.width).min_w(0).flex_none().gap(9)
-      .when(g.wide,e=>e.h(g.height))
-      .child(h_flex().h(30).flex_none().px(2).gap(8).items_center()
-        .child(div().w(3).h(11).bg(t.accent))
-        .child(div().flex_1().text_size(11).font_semibold().text_color(t.foreground).child("RESIDENTS"))
-        .child(div().text_size(10).text_color(t.dim).child(`${list.length}`)))
-      .child(residentList);
-    const scene=v_flex().w(g.sceneFrame).flex_none().gap(8)
-      .child(div().w(g.sceneFrame).h(g.height).flex_none().child(panelSkin(el)))
-      .child(h_flex().w_full().px(6).gap(8).flex_wrap().items_center().text_size(10).text_color(t.dim)
-        .child(div().child("Select a building or resident to return to work"))
-        .child(div().flex_1()).child(div().child("Right-click to customise")));
-    const composition=(g.wide?h_flex():v_flex()).w(g.width).flex_none().gap(g.gap).items_start().child(scene).child(roster);
-    return v_flex().size_full().min_h(0).child(this.header(t)).child(toolbar)
-      .child(v_flex().id("town-stage-scroll").flex_1().min_h(0).overflow_y_scrollbar().px(20).pb(20).gap(10).items_center()
-        .child(h_flex().w(g.width).min_h(28).flex_none().gap(12).flex_wrap().items_center()
-          .child(div().flex_1().min_w(80).truncate().text_size(12).font_semibold().text_color(t.foreground).child(`${page} · ${model.homes.length} spaces`))
-          .child(meter("working",count("working"),t.working))
-          .child(meter("waiting",count("waiting"),t.waiting))
-          .child(meter("need you",count("blocked"),t.blocked))
-          .child(meter("idle",count("idle"),t.dim)))
-        .child(composition));
-  }
+  townView(t) { return townScreen(this, t); }
 
   cardsView(t) {
     const list=displayedAgents().filter(a=>inPage(keyOf(machineOfAgent(a))));
@@ -341,20 +274,27 @@ ${line(a, ch)}`)
     const id = props().housePicker, close = () => closeOverlay(props().overlay);
     const space = spaces().find((s) => s.id === id);
     const cur = (shared("town.houses.v2") ?? {})[id];
-    return v_flex().id("house-picker").size_full().bg(t.surface).text_color(t.foreground)
+    // Framed like the other neon dialogs: title and hint, then a grid of bevelled house tiles.
+    const tile = (h) => {
+      const on = h.id === cur, k = Math.min(128 / h.w, 100 / h.h);
+      return bevel(v_flex().id(`hp-${h.id}`).w(152).h(150).items_center().justify_end().gap(8).pb(12).px(8), on)
+        .hover((st) => st.opacity(0.9))
+        .on_click(() => { setHouse(id, h.id); close(); })
+        .child(image(h.file).w(Math.round(h.w * k)).h(Math.round(h.h * k)))
+        .child(h_flex().max_w(136).gap(5).items_center()
+          .when(on, (el) => el.child(svg("mods/crew/icons/check.svg").size(11).flex_none().text_color(t.accent)))
+          .child(div().min_w(0).truncate().text_size(11.5).font_semibold().text_color(on ? t.foreground : t.muted).child(h.name)));
+    };
+    return panelSkin(v_flex().id("house-picker").size_full().min_h(0).text_color(t.foreground)
       .on_key_down((e, cx) => { if (e.key === "escape") { close(); cx.stop_propagation(); } })
-      .child(h_flex().h(46).flex_none().px(16).items_center().border_b(1).border_color(t.border)
-        .child(div().flex_1().text_size(14).font_semibold().child(`A house for ${space?.name ?? "this space"}`))
-        .child(div().text_size(11).text_color(t.dim).child("Esc")))
-      .child(div().id("house-grid").flex_1().min_h(0).overflow_y_scrollbar().p(12)
-        .child(h_flex().flex_wrap().gap(8).children(ALL_HOUSES.map((h) => {
-          const on = h.id === cur, k = Math.min(108 / h.w, 88 / h.h);
-          return v_flex().id(`hp-${h.id}`).w(124).h(122).items_center().justify_end().gap(4).pb(6).rounded(10).cursor_pointer()
-            .bg(on ? t.selected : t.raised).border_1().border_color(on ? t.accent : t.border).hover((st) => st.border_color(h.accent))
-            .on_click(() => { setHouse(id, h.id); close(); })
-            .child(image(h.file).w(Math.round(h.w * k)).h(Math.round(h.h * k)))
-            .child(div().max_w(116).truncate().text_size(10.5).text_color(on ? t.accent : t.dim).child(h.name));
-        }))));
+      .child(h_flex().flex_none().px(20).pt(16).pb(12).gap(12).items_center()
+        .child(v_flex().flex_1().min_w(0).gap(4)
+          .child(div().truncate().text_size(16).font_semibold().child(`A house for ${space?.name ?? "this space"}`))
+          .child(div().text_size(12).text_color(t.muted).child("Pick the building this space lives in. Each town keeps its houses unique.")))
+        .child(div().px(8).py(3).rounded(3).border_1().border_color(t.border).text_size(11).text_color(t.dim).child("Esc")))
+      .child(div().h(1).mx(20).flex_none().bg(t.border))
+      .child(div().id("house-grid").flex_1().min_h(0).overflow_y_scrollbar().px(20).py(16)
+        .child(h_flex().flex_wrap().gap(12).children(ALL_HOUSES.map(tile)))), t);
   }
 
   // The profile shares the native frame and bevel controls with the workspace.
@@ -365,6 +305,8 @@ ${line(a, ch)}`)
     // Root stacks stay mounted. Do not build the hidden city/cards, decode its
     // art, or assign residents just because another surface changed theme.
     if (p.full && layout()?.active !== (p.cards ? "crew-cards" : "crew-screen")) return div().size_full();
+    // The full-screen Town and Cards blocks are fixed views: the mode follows the block, not the last button pressed.
+    if (p.full) this.mode = p.cards ? "crew" : "town";
     const t = skin();
     if (p.renameCompanion) return namePrompt(this, t);
     if (p.profile) return this.profileView(t);
