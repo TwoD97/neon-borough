@@ -20,9 +20,9 @@ FX = os.path.join(APP_HOME, "mods", "crew", "town", "fx")  # the town's status a
 CONFIG = os.path.expanduser("~/.herdr/companions.json")
 ORDER = ["patch", "ghost", "atlas", "zip", "nova", "hex"]
 PALETTES = {"original", "claude", "codex", "violet", "mint", "rose", "gold"}
-STATE_ANIM = {"working": "working", "blocked": "attention", "done": "success", "idle": "idle"}
-STATE_TEXT = {"working": "working", "blocked": "needs you", "done": "done", "idle": "idle"}
-STATE_COLOR = {"working": "#49dcd7", "blocked": "#ffb347", "done": "#7ee787", "idle": "#8b98a9"}
+STATE_ANIM = {"working": "working", "blocked": "attention", "waiting": "idle", "done": "success", "idle": "idle"}
+STATE_TEXT = {"working": "working", "blocked": "needs you", "waiting": "waiting", "done": "done", "idle": "idle"}
+STATE_COLOR = {"working": "#49dcd7", "blocked": "#ffb347", "waiting": "#a98bff", "done": "#7ee787", "idle": "#8b98a9"}
 SHELLS = {"bash", "zsh", "sh", "fish", "pwsh", "powershell", "cmd", "shell", "nu"}
 KEY = "#010203"  # the window's transparent color
 HEIGHT = 84      # robot height on screen
@@ -123,7 +123,7 @@ class TaskbarActivity:
     def select(self, agents, now=None):
         now = time.monotonic() if now is None else now
         current = {a["address"]: a for a in agents}
-        active = {addr for addr, a in current.items() if a["status"] in ("working", "blocked")}
+        active = {addr for addr, a in current.items() if a["status"] in ("working", "blocked", "waiting")}
         for addr in self.active - active:
             if addr in current and current[addr]["status"] in ("idle", "done"):
                 self.finishing[addr] = now + 5
@@ -132,7 +132,7 @@ class TaskbarActivity:
                           if until > now and addr in current and addr not in active}
         items = [a for addr, a in current.items() if addr in active]
         items += [{**current[addr], "status": "done"} for addr in self.finishing]
-        order = {"blocked": 0, "working": 1, "done": 2}
+        order = {"blocked": 0, "working": 1, "waiting": 2, "done": 3}
         return sorted(items, key=lambda a: (order[a["status"]], a["address"]))[:8]
 
 
@@ -184,7 +184,7 @@ class Agents:
                 return None  # herdr isn't running (or the crew mod isn't loaded)
             items = [{**a, "agent": "", "where": a.get("where", "")} for a in d["agents"]
                      if a.get("status") in STATE_ANIM and a.get("crew") in ORDER]
-            order = {"blocked": 0, "working": 1, "done": 2, "idle": 3}
+            order = {"blocked": 0, "working": 1, "waiting": 2, "done": 3, "idle": 4}
             return sorted(items, key=lambda a: (order[a["status"]], a["address"]))
         except Exception:
             return None
@@ -211,7 +211,7 @@ class Agents:
                         crew = self.crew_pick(t["address"], labels.get("herdr.crew"))
                         items.append({"address": t["address"], "agent": agent, "status": status, "where": where, "crew": crew,
                                       **self.appearance.get(t["address"], {})})
-                    order = {"blocked": 0, "working": 1, "done": 2, "idle": 3}
+                    order = {"blocked": 0, "working": 1, "waiting": 2, "done": 3, "idle": 4}
                     self.items = sorted(items, key=lambda a: (order[a["status"]], a["address"]))
                 except Exception:
                     pass
@@ -496,8 +496,8 @@ class Companions:
             station = bubble = None
             if status == "working" and not r.walking:
                 station = self.art.get(f"station-{a.get('kind') or 'run'}-{1 + (self.t // 10) % 2}", round(HEIGHT * 0.72))
-            elif status in ("blocked", "done"):
-                bubble = self.art.get("bubble-alert" if status == "blocked" else "bubble-done", 30)
+            elif status in ("blocked", "done", "waiting"):
+                bubble = self.art.get({"blocked": "bubble-alert", "waiting": "bubble-waiting"}.get(status, "bubble-done"), 30)
             tw = 7 * len(label) + 14
             lane = next((i for i, edge in enumerate(lanes) if r.x - tw / 2 > edge + 4), len(lanes))
             if lane == len(lanes):

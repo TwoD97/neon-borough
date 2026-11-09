@@ -12,6 +12,8 @@ import { View, div, image, svg } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
 import { agents, terminals, panes, focused, spaces, run, theme, shared, setShared, setAgentOrder, openOverlay, closeOverlay, props, window, layout, nextCommand } from "herdr";
 import { characterOf, provider, spriteFor, castNew, stepRobots, steppingBase, animatedPose } from "./cast.js";
+import { withWait } from "./agent-wait.js";
+import { STATUS_WORD, waitingText, waitingActivity } from "./wait-presentation.js";
 import { reportedActivity } from "./activity-data.js";
 import { LOCAL, keyOf, label as machineLabel, ordered as orderMachines, inPage, currentPage } from "./machines.js";
 
@@ -66,7 +68,7 @@ function title(tab, l) {
   const telling = live && live !== prog && !/^[~/]|^[A-Za-z]:\\/.test(live) && !live.includes("@") && live.toLowerCase() !== l?.program?.key;
   return !tab.named && telling ? live : tab.name;
 }
-const RANK = { blocked: 4, done: 3, working: 2, idle: 1 };
+const RANK = { blocked: 5, done: 4, working: 3, waiting: 2, idle: 1 };
 // A sub-agent without a pane isn't in agents(): its raw word, error counting as
 // blocked. It's never done: it reports to its parent, and the parent's done is the news.
 const kidStatus = (k, listed) => {
@@ -81,12 +83,13 @@ const sortOf = () => SORTS.find((s) => s.id === (shared("agents.sort") ?? "group
 const FILTERS = [
   { id: "all", label: "All agents", icon: "layers" },
   { id: "working", label: "Working", icon: "spinner" },
+  { id: "waiting", label: "Waiting", icon: "clock" },
   { id: "blocked", label: "Needs you", icon: "alert-triangle" },
   { id: "done", label: "Done", icon: "check" },
 ];
 const filterOf = () => FILTERS.find(f => f.id === shared("agents.filter")) ?? FILTERS[0];
-const SECTION = { 4: "Needs you", 3: "Done", 2: "Working", 1: "Idle" };
-const SECTION_STATUS = { 4: "blocked", 3: "done", 2: "working" };
+const SECTION = { 5: "Needs you", 4: "Done", 3: "Working", 2: "Waiting", 1: "Idle" };
+const SECTION_STATUS = { 5: "blocked", 4: "done", 3: "working", 2: "waiting" };
 
 function duration(ms) {
   const m = Math.floor(ms / 60000);
@@ -337,6 +340,7 @@ export default class Agents extends View {
     if (a.status === "working") return svg("mods/crew/icons/spinner.svg").size(12).mx(1).flex_none().text_color(t.working).when(shared("neon.motion") !== false, el => el.spin(900));
     if (a.status === "blocked" && compact) return svg("mods/crew/icons/alert-triangle.svg").size(14).flex_none().text_color(skin().warning);
     if (a.status === "blocked") return div().flex_none().px(6).h(18).bg((skin().warning+"26")).text_size(10.5).font_semibold().text_color(skin().warning).flex().items_center().child("Needs you");
+    if (a.status === "waiting") return svg("mods/crew/icons/clock.svg").size(12).mx(1).flex_none().text_color(t.waiting).tooltip(waitingText(a));
     // Idle: a ring; done: a dot.
     if (a.status === "idle") return div().size(7).mx(3).flex_none().rounded(4).border(1.5).border_color(t.idle ?? t.dim);
     return div().size(7).mx(3).flex_none().rounded(4).bg(a.status === "done" ? color : t.dim + "00");
@@ -351,9 +355,10 @@ export default class Agents extends View {
     const sort = sortOf();
     const filter = filterOf();
     // Only the machines on the Spaces list's page (all of them on "All").
-    let list = agents().filter((a) => inPage(machineKey(a)));
-    this.listed = new Map(list.map((a) => [a.address, a.status]));
     const all = terminals();
+    let list = agents().map(a => withWait(a, all)).filter((a) => inPage(machineKey(a)));
+    this.listed = new Map(all.map(a => [a.address, withWait(a, all).status]));
+    for (const a of list) this.listed.set(a.address, a.status);
     this.migratePins(all);
     const shown = focused()?.agent;
     const now = Date.now();
@@ -450,11 +455,11 @@ export default class Agents extends View {
       const machine = a.address.includes("/") ? a.address.split("/")[0] : null;
       const shownMachine = machine && !(machinesShown && !isPinnedRow(a)) ? machineLabel(keyOf(machine)) : null;
       if (collapsed) {
-        const tone = a.status === "blocked" ? skin().warning : a.status === "working" ? skin().working : a.status === "done" ? skin().done : skin().dim;
-        const state = {working:"Working",blocked:"Needs you",done:"Done",idle:"Idle"}[a.status] || a.status;
+        const tone = a.status === "blocked" ? t.warning : t[a.status] || t.dim;
+        const state = STATUS_WORD[a.status] || a.status;
         return h_flex().id(`ag-${a.address}`).h(44).w_full().flex_none().items_center().justify_center()
           .child(bevel(div().relative().w(32).h(42).flex_none(), a.focused || shown === a.address)
-            .tooltip(`${ch.name} · ${pv.name} · ${state}\n${label(a) || a.title || ""}\n${a.space_name || ""}\nRight-click for profile`)
+            .tooltip(`${ch.name} · ${pv.name} · ${state}\n${label(a) || a.title || ""}\n${waitingText(a)}\n${a.space_name || ""}\nRight-click for profile`)
             .hover(s => s.opacity(.85))
             .on_click(() => run("agent.focus", {terminal:a.address}))
             .on_mouse_down("right", (_e,cx) => {cx.stop_propagation();openOverlay({mod:"crew",kind:"dialog",frame:"none",width:620,height:440,props:{profile:a.address}});})
@@ -487,13 +492,13 @@ export default class Agents extends View {
       const full = byPriority || isPinned;
       const name = full ? a.space_name || label(a) : more ?? (/^\d+$/.test(label(a)) ? a.program?.name || label(a) : label(a));
       const task = more || name;
-      const state = a.status === "blocked" ? "Needs you" : a.status === "working" ? "Working" : a.status === "done" ? "Done" : "Idle";
+      const state = STATUS_WORD[a.status] || "Idle";
       const cw = Math.max(158, (find(layout(), "sidebar")?.size?.px ?? 360) - 22);
       const look = providerLook(pv), geometry = providerGeometry(pv,cw);
       const scale = Math.min(1.18,Math.max(1,cw/300));
       const tone = look.onLight ? (a.status === "blocked" ? t.warning : t[a.status] || t.dim) : mix(a.status === "blocked" ? t.warning : t[a.status] || t.dim,"#e6edf7",.35);
       const metadata = [full ? a.space_name : null, shownMachine].filter(Boolean).join(" · ");
-      const activity = reportedActivity(a, all, now);
+      const activity = waitingActivity(a, reportedActivity(a, all, now));
       const showActivity = activity.reported || a.status === "working" || a.status === "blocked";
       return providerFrame(div(), pv, cw, t, a)
         .id(`ag-${a.address}`).w_full().h(agentHeight).flex_none().cursor_pointer()
@@ -519,7 +524,7 @@ export default class Agents extends View {
             .when(this.hovered === a.address, el => el.child(pin.text_color(look.muted)))
             .child(div().min_w(0).truncate().text_size(9.5*scale).text_color(tone).tooltip(state)
               .when(a.status === "blocked" && shared("neon.motion") !== false, el => el.loop("opacity",{from:.55,to:1,period:2200}))
-              .child(cw<205 ? (a.status==="blocked" ? "Wait" : a.status==="working" ? "Work" : state) : state)))
+              .child(cw<205 ? (a.status==="blocked" ? "You" : a.status==="waiting" ? "Wait" : a.status==="working" ? "Work" : state) : state)))
           .child(h_flex().h(14*scale).min_w(0).gap(3).items_center()
             .child(div().flex_1().min_w(0).truncate().text_size(11.5*scale).text_color(idle ? look.muted : look.ink)
               .tooltip(`Conversation: ${task}`).child(task))
@@ -528,7 +533,7 @@ export default class Agents extends View {
               .on_mouse_down("left",(_e,cx)=>cx.stop_propagation())
               .on_click((_e,cx)=>{cx.stop_propagation();openOverlay({mod:"neon-rename",kind:"dialog",frame:"none",width:440,height:220,props:{tab:a.tab,name:task}});})
               .child(svg("mods/crew/icons/edit.svg").size(11))))
-          .child(div().h(12*scale).min_w(0).truncate().text_size(10.5*scale).text_color(showActivity && activity.reported ? look.accent : look.muted)
+          .child(div().h(12*scale).min_w(0).truncate().text_size(10.5*scale).text_color(a.status === "waiting" ? t.waiting : showActivity && activity.reported ? look.accent : look.muted)
             .tooltip(showActivity ? `Activity: ${activity.detail}` : metadata).child(showActivity ? activity.title : metadata))
           .child(h_flex().h(12*scale).min_w(0).gap(4).items_center()
             .when(Boolean(a.program?.icon), el=>el.child(icon(a.program,12*scale,look.accent)))
@@ -586,7 +591,7 @@ export default class Agents extends View {
         .child(groupWell(svg(`mods/crew/icons/${isMachine ? (g.machine === LOCAL ? "monitor" : "server") : "layers"}.svg`).size(isMachine ? 15 : 13).text_color(isMachine ? skin().accent : skin().muted)))
         .child(div().flex_1().min_w(0).truncate().text_color(isMachine ? skin().foreground : (t[g.status] ?? skin().foreground)).child(g.label))
         .when(agentWidth >= 220 && (byPriority || isMachine || !open), (el) => el.child(groupWell(div().text_size(9).text_color(skin().muted).child(String(g.members.length)),20,18)))
-        .when(!open && !byPriority && top && top !== "idle", (el) => el.child(groupWell(this.status(t, { status: top }, true),16,18).tooltip(top === "working" ? "Working" : top === "blocked" ? "Needs you" : "Done")))
+        .when(!open && !byPriority && top && top !== "idle", (el) => el.child(groupWell(this.status(t, { status: top }, true),16,18).tooltip(STATUS_WORD[top] || top)))
         .child(groupWell(svg(`mods/crew/icons/chevron-${open ? "down" : "right"}.svg`).size(12).text_color(skin().accent),20,18).ml(14));
     };
     const groupNode = g => {

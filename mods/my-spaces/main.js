@@ -14,9 +14,11 @@ import { HOUSE_ART } from "./house-art.js";
 
 import { View, div, svg, image } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input } from "gpui-base";
-import { spaces, machines, panes, run, openOverlay, closeOverlay, props, exec, hc, theme, shared, setShared, watchFolder, window, layout } from "herdr";
+import { spaces, machines, agents, terminals, panes, run, openOverlay, closeOverlay, props, exec, hc, theme, shared, setShared, watchFolder, window, layout } from "herdr";
 import { LOCAL, keyOf, machineOf, label, names, rename, ordered as orderMachines, place as placeMachine, move as moveMachine,
   pages, currentPage, inPage, savePage, newPageId, deletePage, movePage, togglePageMachine } from "./machines.js";
+import { withWait } from "./agent-wait.js";
+import { STATUS_WORD } from "./wait-presentation.js";
 import { ICONS } from "./icons.js";
 
 // A space's icon (Pixelarticons, in icons/pixelart/), chosen in the picker; stored as shared "space.icons".
@@ -50,7 +52,7 @@ const FALLBACK = 60000;
 
 // What a stored color name looks like on an avatar (the same in every mod
 // that draws space avatars): one strong color per hue, light and dark alike.
-const RANK = { blocked: 4, done: 3, working: 2, idle: 1 };
+const RANK = { blocked: 5, done: 4, working: 3, waiting: 2, idle: 1 };
 const MARK = { ansi6: "#22a99a", ansi3: "#e3814f", ansi4: "#5b8def", ansi5: "#8b7cf6", ansi2: "#3fae6a", ansi1: "#d9649a" };
 
 // A space speaks up only when something in it needs you.
@@ -392,7 +394,12 @@ export default class Spaces extends View {
 
   // The rows, under a header per machine once one isn't this computer.
   grouped(t, collapsed) {
-    const rows = this.ordered();
+    const records = terminals(), states = new Map();
+    for (const raw of agents()) {
+      const a = withWait(raw, records), previous = states.get(a.space);
+      if ((RANK[a.status] ?? 0) > (RANK[previous] ?? 0)) states.set(a.space, a.status);
+    }
+    const rows = this.ordered().map(r => states.has(r.w.id) ? { ...r, w: { ...r.w, status: states.get(r.w.id) } } : r);
     const remote = [...new Set([...rows.map(r => r.w.machine).filter(Boolean), ...this.machines.map(m => m.name), ...Object.keys(this.reconnecting)])];
     const loading = m => {
       const layout = machines().find(k => k.name === m)?.layout;
@@ -447,7 +454,7 @@ export default class Spaces extends View {
           .when(collapsed, el => el.child(div().absolute().left(7).right(7).bottom(0).h(1).bg(folded ? skin().dim : skin().accent))))
         .when(!collapsed, el => el.child(div().flex_1().min_w(0).truncate().font_semibold().text_color(skin().foreground).child(label(key)))
           .when(mine.length > 0 && !compactHeader, el => el.child(groupWell(div().text_size(9).text_color(skin().muted).tooltip(`${mine.length} spaces`).child(String(mine.length)),20,18)))
-          .when(folded && top && top !== "idle", el => el.child(groupWell(top === "working" ? svg("mods/crew/icons/spinner.svg").size(12).text_color(t.working).when(shared("neon.motion") !== false, el => el.spin(900)) : div().size(6).rounded(3).bg(t[top] ?? t.dim),16,18).tooltip(top === "working" ? "Working" : top === "blocked" ? "Needs you" : "Done")))
+          .when(folded && top && top !== "idle", el => el.child(groupWell(top === "working" ? svg("mods/crew/icons/spinner.svg").size(12).text_color(t.working).when(shared("neon.motion") !== false, el => el.spin(900)) : div().size(6).rounded(3).bg(t[top] ?? t.dim),16,18).tooltip(STATUS_WORD[top] || top)))
           .when(!connected && !rebuilt, el => el.child(div().flex_none().child((machine?.state ?? "asleep").replace(/_/g, " "))))
           .when(rebuilt, el => el.child(h_flex().flex_none().gap(3).items_center()
             .child(div().max_w(140).truncate().child(repair?.error || "rebuilt ·"))

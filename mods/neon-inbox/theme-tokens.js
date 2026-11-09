@@ -55,6 +55,7 @@ export function skin(palette=theme()) {
     accent_foreground:palette.accent_foreground || (luminance(accent)>.4?"#09202b":"#ffffff"),
     solid:palette.solid || accent,solid_foreground:palette.solid_foreground || (light?"#ffffff":"#071722"),
     working:palette.working || accent,blocked:palette.blocked || (light?"#994b00":"#ffc572"),
+    waiting:palette.waiting || (light?"#6941af":"#a98bff"),
     done:palette.done || (light?"#17683b":"#74d6aa"),idle:palette.idle || mix(background,foreground,.55),
     warning:light?"#8a4b00":"#ffc572",danger:light?"#a02442":"#ff658e",
     metal:mix(surface,foreground,light?.14:.10),rail:mix(surface,foreground,light?.20:.17),

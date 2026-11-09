@@ -1,0 +1,26 @@
+{
+  "tool": "built-in image_gen",
+  "assets": [
+    {
+      "name": "bubble-waiting",
+      "source": "exec-e9fb281b-53bb-4e56-90fd-6c06308f31d3.png",
+      "filter": "crop=1048:1059:103:110,scale=88:88:flags=neighbor,pad=96:96:4:4:color=black@0,lut=a='if(gte(val,110),255,0)'",
+      "prompt": "Use case: stylized-concept. Generate one transparent PNG game sprite for Neon Borough pixel-art town: a small speech bubble containing a clear hourglass symbol for WAITING. Match reference bubble style: dark navy filled octagonal pixel bubble, bright violet #a98bff beveled stepped border, bottom-centre short speech tail. Pale violet hourglass with two triangular sand chambers, clear bold readable at 96x96. Crisp pixel clusters, front view, centered, nearly fills square canvas with 4% transparent margin. No letters, no background, no ground, no soft halo, no extra objects. Clean opaque cutout; actual transparent background. Save generated image.",
+      "preserved_source": "generated/bubble-waiting-source.png"
+    },
+    {
+      "name": "pad-waiting",
+      "source": "exec-79d3138a-ce51-40c9-bf3e-f4ac7361dc20.png",
+      "filter": "crop=2136:600:18:68,scale=252:76:flags=neighbor,pad=256:80:2:2:color=black@0,lut=a='if(gte(val,110),255,0)'",
+      "prompt": "Use case: stylized-concept. Generate one transparent PNG game sprite: Neon Borough waiting floor pad. A very wide thin elliptical holographic ring resting flat on pavement, three-quarter elevated view, aspect about 256:80. Pixel-art sci-fi, dark graphite metal rim with small machined segmented details and violet #a98bff luminous segments around the ellipse. Centre of ring completely transparent, outside completely transparent. No floor or ground rectangle, no objects, no text, no floating beams. Symmetric centered oval, clean hard cut-out, crisp clusters readable at 256x80; ring nearly fills canvas with small transparent edge margin. No diffuse halo.",
+      "preserved_source": "generated/pad-waiting-source.png"
+    },
+    {
+      "name": "glow-waiting",
+      "source": "exec-bce1f047-73c2-41ee-be07-5ec95048582a.png",
+      "filter": "scale=464:280:flags=lanczos,pad=512:320:24:20:color=black@0",
+      "prompt": "Use case: stylized-concept. Generate one transparent VFX sprite for Neon Borough pixel-art town: soft violet #a98bff elliptical neon aura behind a building, landscape ratio 512:320. Bottom-heavy luminous pool rising into a softly rounded dome, strongest light low in centre at 75% height, smoothly feathering to fully transparent edges on every side. Muted lavender violet only. Subtle pixel-art dither texture compatible with pixel houses, but soft gradual alpha fade, not an opaque silhouette. It is pure light: no building, object, floor, border, rays, stars, hard contour, or text. Leave about 6% fully transparent margin around all sides. Actual alpha background.",
+      "preserved_source": "generated/glow-waiting-source.png"
+    }
+  ]
+}

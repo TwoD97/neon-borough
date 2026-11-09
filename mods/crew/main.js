@@ -2,6 +2,8 @@ import {cardState,frameAsset} from "./card-state.js";
 import {providerFrame,providerGeometry} from "./provider-skin.js";
 import {skin,art,artText,mix} from "./theme-tokens.js";
 import {townLayout} from "./town-layout.js";
+import {withWait} from "./agent-wait.js";
+import {STATUS_WORD, waitingText, waitingActivity} from "./wait-presentation.js";
 import {reportedActivity} from "./activity-data.js";
 import { bevel } from "./controls.js";
 import { panelSkin } from "./panel-skin.js";
@@ -25,7 +27,7 @@ import { spriteEl, frameFor, townTick, townFrames } from "./town-actors.js";
 import { CHARACTERS, characterOf, provider, spriteFor, still, castNew, recast, line, actOf, stepRobots } from "./cast.js";
 import { keyOf, label as machineLabel, ordered as orderMachines, inPage, currentPage, pages } from "./machines.js";
 
-const STATUS_WORD = { working: "working", blocked: "needs you", done: "done", idle: "idle" };
+const displayedAgents = () => { const records = terminals(); return agents().map(a => withWait(a, records)); };
 const machineOfAgent = (a) => (a.address.includes("/") ? a.address.split("/")[0] : null);
 
 function openProfile(address) {
@@ -106,16 +108,16 @@ export default class Crew extends View {
     // Detailed activity belongs in the roster; buildings retain live status FX.
     this.activityInRoster=true;
     const {el,model}=renderTown(this,t,g.scene,g.sceneHeight);
-    const rank={blocked:0,working:1,done:2,idle:3};
+    const rank={blocked:0,working:1,waiting:2,done:3,idle:4};
     const list=model.homes.flatMap(home=>home.agents).sort((a,b)=>(rank[a.status]??4)-(rank[b.status]??4));
     const records=terminals();
     const count=status=>list.filter(a=>a.status===status).length;
     const meter=(label,value,color)=>h_flex().gap(5).items_center().flex_none()
       .child(div().size(4).bg(color)).child(div().text_size(10).text_color(t.muted).child(`${value} ${label}`));
     const resident=a=>{
-      const ch=characterOf(a.address),pv=provider(a),activity=reportedActivity(a,records);
+      const ch=characterOf(a.address),pv=provider(a),activity=waitingActivity(a,reportedActivity(a,records));
       const cw=g.wide?g.roster-4:residentWidth,look=providerGeometry(pv,cw,t);
-      const stateColor=a.status==="working"?t.working:a.status==="blocked"?t.blocked:a.status==="done"?t.done:t.dim;
+      const stateColor=t[a.status]||t.dim;
       const tone=look.onLight?stateColor:mix(stateColor,"#e6edf7",.35);
       return providerFrame(div(),pv,cw,t,a).id(`town-resident-${a.address}`).w(cw).h(look.height).flex_none().cursor_pointer()
         .tooltip(`${ch.name} · ${pv.name} · ${a.space_name||"Workspace"}\n${a.title||a.tab_name||ch.role}\n${activity.detail||activity.title}\nSelect to focus · Right-click for profile`)
@@ -131,7 +133,7 @@ export default class Crew extends View {
             .child(div().size(3).flex_none().bg(tone).when(this.motionOn()&&a.status==="blocked",el=>el.loop("opacity",{from:.55,to:1,period:2200})))
             .child(div().text_size(9).text_color(tone).child(STATUS_WORD[a.status]||a.status)))
           .child(div().h(14).min_w(0).truncate().text_size(11).text_color(look.ink).child(a.title||a.tab_name||ch.role))
-          .child(div().h(12).min_w(0).truncate().text_size(10).text_color(activity.reported?look.accent:look.muted).child(activity.title))
+          .child(div().h(12).min_w(0).truncate().text_size(10).text_color(a.status==="waiting"?t.waiting:activity.reported?look.accent:look.muted).child(activity.title))
           .child(div().h(12).min_w(0).truncate().text_size(9).text_color(look.dim).child(`${a.space_name||"Workspace"} · ${pv.name}`)))
         .when(a.focused,el=>el.child(div().absolute().left(look.textLeft).right(look.textRight).bottom(look.height*.16).h(1).bg(look.accent).opacity(.7)));
     };
@@ -169,13 +171,14 @@ export default class Crew extends View {
         .child(h_flex().w(g.width).min_h(28).flex_none().gap(12).flex_wrap().items_center()
           .child(div().flex_1().min_w(80).truncate().text_size(12).font_semibold().text_color(t.foreground).child(`${page} · ${model.homes.length} spaces`))
           .child(meter("working",count("working"),t.working))
+          .child(meter("waiting",count("waiting"),t.waiting))
           .child(meter("need you",count("blocked"),t.blocked))
           .child(meter("idle",count("idle"),t.dim)))
         .child(composition));
   }
 
   cardsView(t) {
-    const list=agents().filter(a=>inPage(keyOf(machineOfAgent(a))));
+    const list=displayedAgents().filter(a=>inPage(keyOf(machineOfAgent(a))));
     castNew(agents());
     const available=this.width / (settings().zoom || 1)-48;
     const columns=Math.max(1,Math.min(3,Math.floor((available+18)/378)));
@@ -186,10 +189,10 @@ export default class Crew extends View {
         .child(div().text_size(24).font_bold().child("Meet your night shift."))
         .child(div().text_size(12).text_color(t.muted).child("Each resident has a role, a personality, and a job in progress. Select a card to return to their terminal."))
         .child(h_flex().flex_wrap().justify_center().gap(18).children(list.map(a=>{
-          const ch=characterOf(a.address),pv=provider(a),tone=a.status==="blocked"?t.blocked:a.status==="working"?t.working:a.status==="done"?t.done:t.muted;
+          const ch=characterOf(a.address),pv=provider(a),tone=t[a.status]||t.muted;
           return div().id(`identity-${a.address}`).relative().w(width).h(cardHeight).flex_none().rounded(12).overflow_hidden()
             .bg(t.background).border_1().border_color(a.focused?ch.color:t.border).cursor_pointer().hover(st=>st.border_color(ch.color))
-            .tooltip(`${ch.personality}\nRight-click to change character`)
+            .tooltip(`${ch.personality}\n${waitingText(a)}\nRight-click to change character`)
             .on_click(()=>{run("layout.select",{stack:"root",child:"desktop"});run("agent.focus",{terminal:a.address});})
             .on_mouse_down("right",(_e,cx)=>{cx.stop_propagation();this.profile(a.address);})
             .child(image(art("mods/crew/art/agent-dock.png",t)).absolute().top(0).left(0).w(width).h(cardHeight))
@@ -202,7 +205,7 @@ export default class Crew extends View {
             .child(v_flex().absolute().top(cardHeight*0.69).left(20).right(20).gap(3)
               .child(h_flex().items_center().gap(8).child(div().text_size(20).font_bold().text_color(artText("mods/crew/art/agent-dock.png",t).foreground).child(ch.name)).child(div().flex_1()).child(div().text_size(10).text_color(pv.color).child(pv.name)))
               .child(div().truncate().text_size(12).text_color(artText("mods/crew/art/agent-dock.png",t).foreground).child(a.title||a.tab_name||ch.role))
-              .child(div().truncate().text_size(11).text_color(artText("mods/crew/art/agent-dock.png",t).muted).child(a.space_name||"Workspace"))
+              .child(div().truncate().text_size(11).text_color(a.status==="waiting"?t.waiting:artText("mods/crew/art/agent-dock.png",t).muted).tooltip(waitingText(a)||a.space_name||"Workspace").child(waitingText(a)||a.space_name||"Workspace"))
               );
         })))
         .when(!list.length,el=>el.child(div().p(24).text_color(t.muted).child("Start an agent to welcome your first resident."))));
@@ -210,22 +213,22 @@ export default class Crew extends View {
 
   // Compact, actionable roster for the side panel.
   rosterView(t) {
-    const rank = { blocked: 0, working: 1, done: 2, idle: 3 };
-    const list = agents().filter((a) => inPage(keyOf(machineOfAgent(a))) && (this.filter === "all" || a.status === this.filter))
+    const rank = { blocked: 0, working: 1, waiting: 2, done: 3, idle: 4 };
+    const list = displayedAgents().filter((a) => inPage(keyOf(machineOfAgent(a))) && (this.filter === "all" || a.status === this.filter))
       .sort((a, b) => (rank[a.status] ?? 4) - (rank[b.status] ?? 4));
     castNew(agents());
     const cw=Math.max(240,this.width/(settings().zoom||1)-20), rh=cw/3, scale=Math.max(1,Math.min(1.45,cw/360));
     return v_flex().size_full().child(this.header(t))
-      .child(h_flex().p(8).gap(4).flex_wrap().children([['all','All'],['working','Working'],['blocked','Needs you'],['done','Done']].map(([id,name])=>this.control(`filter-${id}`,name,(_e,cx)=>{this.filter=id;cx.notify();},t,this.filter===id))))
+      .child(h_flex().p(8).gap(4).flex_wrap().children([['all','All'],['working','Working'],['waiting','Waiting'],['blocked','Needs you'],['done','Done']].map(([id,name])=>this.control(`filter-${id}`,name,(_e,cx)=>{this.filter=id;cx.notify();},t,this.filter===id))))
       .child(h_flex().h(30).px(12).gap(8).items_center().text_size(10).font_bold().text_color(t.dim)
         .child(div().flex_1().child("CREW MANIFEST")).child(div().child(`${list.length} RESIDENTS`)))
       .child(v_flex().id("crew-roster").flex_1().min_h(0).overflow_y_scrollbar().px(10).pb(12).gap(8)
         .when(!list.length, (el) => el.child(div().p(16).text_size(12).text_color(t.muted).child(this.filter === "all" ? "Your crew will appear here when agents start." : "No agents with this status.")))
         .children(list.map((a) => {
           const ch = characterOf(a.address), pv = provider(a);
-          const tone = a.status === "blocked" ? t.blocked : a.status === "working" ? t.working : a.status === "done" ? t.done : t.dim;
+          const tone = t[a.status] || t.dim;
           return div().id(`roster-${a.address}`).relative().w_full().h(rh*0.88).flex_none().cursor_pointer()
-            .tooltip(`${ch.name} · ${pv.name} · ${a.space_name || ""}\n${a.title || a.tab_name || ""}\nClick to focus · Right-click for profile`)
+            .tooltip(`${ch.name} · ${pv.name} · ${a.space_name || ""}\n${a.title || a.tab_name || ""}\n${waitingText(a)}\nClick to focus · Right-click for profile`)
             .on_click(() => { run("layout.select", { stack: "root", child: "desktop" }); run("agent.focus", { terminal: a.address }); })
             .on_mouse_down("right", (_e, cx) => { cx.stop_propagation(); this.profile(a.address); })
             .child(image(frameAsset(art("mods/crew/art/crew-component.png",t),cardState(a.status).powered)).absolute().top(-rh*0.04).left(0).w(cw).h(rh))
@@ -238,7 +241,7 @@ export default class Crew extends View {
                 .child(div().text_size(10*scale).text_color(tone).child(STATUS_WORD[a.status]??a.status)
                   .when(this.motionOn() && a.status === "blocked", el => el.loop("opacity", {from:0.6,to:1,period:2200}))))
               .child(div().truncate().text_size(11*scale).text_color(artText("mods/crew/art/crew-component.png",t).foreground).child(a.title||a.tab_name||ch.role))
-              .child(div().truncate().text_size(10*scale).text_color(artText("mods/crew/art/crew-component.png",t).muted).child(a.space_name||pv.name)));
+              .child(div().truncate().text_size(10*scale).text_color(a.status==="waiting"?t.waiting:artText("mods/crew/art/crew-component.png",t).muted).tooltip(waitingText(a)||a.space_name||pv.name).child(waitingText(a)||a.space_name||pv.name)));
         })));
   }
 
@@ -247,7 +250,7 @@ export default class Crew extends View {
     const ch = characterOf(a.address), pv = provider(a), act = actOf(a.status);
     const w = Math.round(82 * size), h = Math.round(109 * size);
     const needs = a.status === "blocked", done = a.status === "done";
-    const bubbleColor = needs ? t.blocked : done ? t.done : act === "working" ? ch.color : t.dim;
+    const bubbleColor = a.status === "waiting" ? t.waiting : needs ? t.blocked : done ? t.done : act === "working" ? ch.color : t.dim;
     return v_flex().id(`bot-${a.address}`).w(Math.round(122 * size)).flex_none().items_center().gap(3).py(6).rounded(10).cursor_pointer()
       .when(a.focused, (el) => el.bg(t.selected))
       .hover((s) => s.bg(t.hover))
@@ -275,18 +278,20 @@ export default class Crew extends View {
   room(space, list, t) {
     const working = list.filter((a) => a.status === "working").length;
     const needs = list.filter((a) => a.status === "blocked").length;
+    const waiting = list.filter((a) => a.status === "waiting").length;
     return v_flex().id(`room-${space.id}`).flex_none().min_w(150).max_w_full().rounded(12).bg(t.surface).border_1().border_color(needs ? t.blocked : space.active ? t.border : t.border).overflow_hidden()
       .child(h_flex().id(`room-head-${space.id}`).h(32).px(12).gap(8).items_center().border_b(1).border_color(t.border).cursor_pointer().hover((s) => s.bg(t.hover))
         .on_click(() => run("space.select", { id: space.id }))
         .child(div().flex_1().min_w(0).truncate().text_size(12.5).font_semibold().text_color(t.foreground).child(space.name))
         .when(working > 0, (el) => el.child(div().text_size(11).text_color(t.working).child(`${working} working`)))
         .when(needs > 0, (el) => el.child(div().text_size(11).text_color(t.blocked).child(`${needs} need you`)))
+        .when(waiting > 0, (el) => el.child(div().text_size(11).text_color(t.waiting).child(`${waiting} waiting`)))
         .child(div().text_size(11).text_color(t.dim).child(`${list.length} ${list.length === 1 ? "agent" : "agents"}`)))
       .child(h_flex().flex_wrap().gap(4).p(8).bg(t.raised).children(list.map((a) => this.robot(a, t))));
   }
 
   crewView(t) {
-    const all = agents();
+    const all = displayedAgents();
     castNew(all);
     const list = all.filter((a) => inPage(keyOf(machineOfAgent(a))));
     const sp = spaces();
@@ -313,7 +318,7 @@ export default class Crew extends View {
 
   // ---- The pet: the agent you're in (else one that needs you), small, in a corner.
   petView(t) {
-    const all = agents();
+    const all = displayedAgents();
     const a = all.find((x) => x.focused) ?? all.find((x) => x.address === focused()?.terminal) ?? all.find((x) => x.status === "blocked");
     if (!a) return div().size_full();
     const ch = characterOf(a.address), pv = provider(a);

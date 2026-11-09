@@ -2,6 +2,7 @@
 // trigger the mod source watcher. Only the sidebar dock owns this exporter.
 import { agents, appHome, exec, home, readTextFile, terminals, writeTextFile } from "herdr";
 import { reportedActivity } from "./activity-data.js";
+import { withWait } from "./agent-wait.js";
 import { characterOf, paletteFor } from "./cast.js";
 
 let started=false;
@@ -15,12 +16,12 @@ export function startCompanionExport(cx) {
     inFlight=true;
     try {
       const records=terminals();
-      const list=agents().map(a=>{
+      const list=agents().map(a=>withWait(a,records)).map(a=>{
         const ch=characterOf(a.address);
         // Which work station the desktop robot stands at (the town's station art).
         const act=a.status==="working"?reportedActivity(a,records):null;
         const kind=!act?"":act.source==="model"?"think":["code","test","scan"].includes(act.kind)?act.kind:"run";
-        return {address:a.address,crew:ch.id,name:ch.name,palette:paletteFor(a),status:a.status,kind,where:a.space_name||a.tab_name||""};
+        return {address:a.address,crew:ch.id,name:ch.name,palette:paletteFor(a),status:a.status,kind,waitFor:a.wait?.for||"",where:a.space_name||a.tab_name||""};
       });
       const body=JSON.stringify(list), now=Date.now();
       if(body===last && now-published<10000)return;

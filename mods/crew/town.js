@@ -11,13 +11,14 @@ import { CHARACTERS, byId, characterOf, provider, spriteFor, stillFor, line } fr
 import { keyOf, inPage, pages, currentPage } from "./machines.js";
 import { reportedActivity } from "./activity-data.js";
 import { beginTown, legFor, frameFor, spriteEl } from "./town-actors.js";
+import { withWait, WAIT_LABEL } from "./agent-wait.js";
 import { bevel } from "./controls.js";
 
 const T = "mods/crew/town";
 const FX = `${T}/fx`;
 const HOME_SIZE = { patch: [468, 368], ghost: [375, 478], atlas: [478, 444], zip: [478, 328], nova: [464, 412], hex: [469, 403] };
-const WORD = { blocked: "NEEDS YOU", working: "WORKING", done: "COMPLETE", idle: "HOME", empty: "EMPTY PLOT" };
-const RANK = { blocked: 4, working: 3, done: 2, idle: 1 };
+const WORD = { blocked: "NEEDS YOU", working: "WORKING", waiting: "WAITING", done: "COMPLETE", idle: "HOME", empty: "EMPTY PLOT" };
+const RANK = { blocked: 5, working: 4, waiting: 3, done: 2, idle: 1 };
 const machineOfAgent = (a) => (a.address.includes("/") ? a.address.split("/")[0] : null);
 // How much of the sprite's frame the standing robot fills.
 const STAND_FILL = 0.62;
@@ -65,7 +66,8 @@ export function setHouse(spaceId, houseId) {
 
 // The spaces of the shown page, and the agents of each.
 export function townModel(district = 0) {
-  const all = agents();
+  const records = terminals();
+  const all = agents().map((a) => withWait(a, records));
   const sp = spaces().filter((s) => inPage(keyOf(s.machine)));
   const districts = Math.max(1, Math.ceil(sp.length / 12));
   const d = Math.min(district, districts - 1);
@@ -127,8 +129,9 @@ function packRow(homes, rowH, W, depth) {
   return { items, gaps };
 }
 
-const toneOf = (t, status) => status === "blocked" ? t.blocked : status === "working" ? t.working : status === "done" ? t.done : t.dim;
-const FX_STATE = { working: "working", blocked: "blocked", done: "done" };
+const WAIT_TONE = "#a98bff";
+const toneOf = (t, status) => status === "blocked" ? t.blocked : status === "working" ? t.working : status === "waiting" ? t.waiting ?? WAIT_TONE : status === "done" ? t.done : t.dim;
+const FX_STATE = { working: "working", blocked: "blocked", waiting: "waiting", done: "done" };
 
 // Two-frame art (screens, sparks, flares): frame 2 fades in and out over frame 1, natively.
 function flicker(id, base, motion, period) {
@@ -152,13 +155,13 @@ function robotEl(view, a, leg, feet, size, t, now, records) {
     // Declared on every render: a transition only animates changes made after it was in place.
     .transition("left", moving ? { duration: Math.max(100, leg.start + leg.dur - now), easing: "linear" } : { duration: 300, easing: "ease-out" })
     .cursor_pointer()
-    .tooltip(`${ch.name} · ${pv.name} · ${a.space_name}\n${status === "blocked" ? "needs you" : status}: ${a.title || a.tab_name || ""}${act ? `\n${act.title}` : ""}\n“${line(a, ch)}”`)
+    .tooltip(`${ch.name} · ${pv.name} · ${a.space_name}\n${status === "blocked" ? "needs you" : status === "waiting" ? `waiting for ${a.wait.note || WAIT_LABEL[a.wait.for] || a.wait.for}` : status}: ${a.title || a.tab_name || ""}${act ? `\n${act.title}` : ""}\n“${line(a, ch)}”`)
     .on_click(() => { run("layout.select", { stack: "root", child: "desktop" }); run("agent.focus", { terminal: a.address }); })
     .on_mouse_down("right", (_e, cx) => { cx.stop_propagation(); view.profile(a.address); });
   if (atHome && FX_STATE[status]) {
     const pw = Math.round(w * 1.5), ph = Math.round(pw * 80 / 256);
     box.child(image(`${FX}/pad-${FX_STATE[status]}.png`).id(`pad-${a.address}`).absolute().left(Math.round((w - pw) / 2)).top(h - Math.round(ph * 0.6)).w(pw).h(ph)
-      .when(motion && status !== "done", el => el.loop("opacity", { from: 0.55, to: 1, period: status === "blocked" ? 900 : 1700 })));
+      .when(motion && status !== "done", el => el.loop("opacity", { from: 0.55, to: 1, period: status === "blocked" ? 900 : status === "waiting" ? 3200 : 1700 })));
   }
   if (act) {
     const kind = act.source === "model" ? "think" : ["code", "test", "scan"].includes(act.kind) ? act.kind : "run";
@@ -168,9 +171,9 @@ function robotEl(view, a, leg, feet, size, t, now, records) {
   }
   box.child(div().absolute().top(0).left(0).w(w).h(h).opacity(status === "idle" ? 0.9 : 1)
     .child(spriteEl(view, `walker:${a.address}`, frameFor(a, leg, now, motion))));
-  if (atHome && (status === "blocked" || status === "done")) {
+  if (atHome && (status === "blocked" || status === "done" || status === "waiting")) {
     const bs = Math.round(Math.max(30, size * 0.62));
-    box.child(image(`${FX}/bubble-${status === "blocked" ? "alert" : "done"}.png`).id(`bubble-${a.address}`).absolute()
+    box.child(image(`${FX}/bubble-${status === "blocked" ? "alert" : status === "waiting" ? "waiting" : "done"}.png`).id(`bubble-${a.address}`).absolute()
       .left(Math.round((w - bs) / 2)).top(head - bs).size(bs)
       .when(motion && status === "blocked", el => el.loop("top", { from: head - bs - 7, to: head - bs, period: 800, easing: "ease-out" })));
   }
@@ -204,7 +207,7 @@ function houseActivity(view, home, b) {
   out.push(image(`${FX}/glow-${state}.png`).id(`pool-${id}`).absolute().left(Math.round(b.x + (b.w - pw) / 2)).top(Math.round(b.y + b.h - ph * 0.5)).w(pw).h(ph)
     .opacity(state === "done" ? 0.6 : 0.9)
     .when(motion && state !== "done", el => el.loop("opacity", { from: 0.6, to: 1, period: state === "blocked" ? 1100 : 2800 })));
-  if (state === "done") return out;
+  if (state === "done" || state === "waiting") return out;
   const bs = Math.round(Math.max(22, Math.min(40, b.w * 0.13)));
   out.push(div().absolute().left(Math.round(b.x + b.w * 0.86 - bs / 2)).top(Math.round(b.y + bs * 0.05)).size(bs)
     .child(flicker(`beacon-${id}`, `${FX}/beacon-${home.state}`, motion, home.state === "blocked" ? 700 : 1300)));

@@ -1,11 +1,13 @@
 import { skin, artText, mix } from "./theme-tokens.js";
 import { View, div, svg, image } from "gpui-kit";
 import { h_flex } from "gpui-base";
-import { spaces, agents, theme, run, window, keys, settings, shared } from "herdr";
+import { spaces, agents, theme, run, window, keys, settings, shared, terminals } from "herdr";
+import { withWait } from "./agent-wait.js";
+import { waitingText } from "./wait-presentation.js";
 import { bevel } from "./controls.js";
 
 export default class WorkspaceStatus extends View {
-  init() { this.compact = false; this.narrow = false; }
+  init(_props, cx) { this.compact = false; this.narrow = false; cx.timer.every(30000, cx => cx.notify()); }
   // The palette key as actually bound, not a hardcoded one; without a
   // binding the hint stays useful ("commands") instead of lying.
   hint(t) {
@@ -20,7 +22,9 @@ export default class WorkspaceStatus extends View {
   render() {
     const t = skin();
     const space = spaces().find(s => s.active);
-    const list = agents();
+    const records = terminals();
+    const list = agents().map(a => withWait(a, records));
+    const waiting = list.filter(a => a.status === "waiting");
     const needs = list.filter(a => a.status === "blocked").length;
     const working = list.filter(a => a.status === "working").length;
     const usage = shared("usage.snapshot");
@@ -37,11 +41,13 @@ export default class WorkspaceStatus extends View {
       .on_size_change((size, cx) => { const width = size.width / (settings().zoom || 1), compact = width < 640, narrow = width < 420; if (compact !== this.compact || narrow !== this.narrow) { this.compact = compact; this.narrow = narrow; cx.notify(); } })
       .child(chip(space?.machine ? "server" : "monitor", machine).max_w(this.narrow ? 80 : this.compact ? 110 : 200).tooltip(`Machine: ${machine}`))
       .when(Boolean(space?.branch) && !this.compact, el => el.child(chip("branch", space.branch).max_w(180).tooltip(space.branch)))
-      .child(chip("layers", this.narrow ? String(list.length) : `${list.length} agents`).flex_none().tooltip(`${list.length} agents · ${working} working · ${needs} need you`))
+      .child(chip("layers", this.narrow ? String(list.length) : `${list.length} agents`).flex_none().tooltip(`${list.length} agents · ${working} working · ${waiting.length} waiting · ${needs} need you`))
       .when(working > 0 && !this.narrow, el => el.child(h_flex().gap(4).flex_none().items_center().text_color(t.accent)
         .child(div().w(2).h(8).bg(t.accent)).child(`${working} working`)))
+      .when(waiting.length > 0, el => el.child(chip("clock", this.narrow ? String(waiting.length) : `${waiting.length} waiting`, t.waiting).flex_none()
+        .tooltip(waiting.map(a => `${a.title || a.tab_name || a.address}: ${waitingText(a)}`).join("\n"))))
       .when(needs > 0, el => el.child(h_flex().gap(4).flex_none().items_center().text_color(skin().warning)
-        .child(div().size(4).bg(skin().warning)).tooltip(`${needs} agents need you`).child(this.narrow ? String(needs) : `${needs} ${this.compact ? "waiting" : "need you"}`)))
+        .child(div().size(4).bg(skin().warning)).tooltip(`${needs} agents need you`).child(this.narrow ? String(needs) : `${needs} need you`)))
       .child(div().flex_1().min_w(0))
       .child(bevel(h_flex().id("sound-alerts").flex_none().h(20).px(6).items_center()).text_color(settings()?.sounds?.enabled===false?t.dim:t.accent)
         .tooltip(settings()?.sounds?.enabled===false?"Sounds & alerts · muted":"Sounds & alerts")

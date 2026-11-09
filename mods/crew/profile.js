@@ -6,12 +6,15 @@ import { agents, spaces, terminals, props, closeOverlay, openOverlay, run } from
 import { panelSkin } from "./panel-skin.js";
 import { bevel } from "./controls.js";
 import { CHARACTERS, PALETTES, characterOf, provider, spriteFor, stillFor, paletteChoice, setPalette, recast } from "./cast.js";
+import { withWait } from "./agent-wait.js";
+import { STATUS_WORD, waitingActivity } from "./wait-presentation.js";
 import { reportedActivity } from "./activity-data.js";
 
 // A fitted identity instrument: no invented percentages or simulated work.
 export function profileCard(t, motion) {
   t=skin(t);
-  const a = agents().find(agent => agent.address === props().profile);
+  const records = terminals();
+  const a = withWait(agents().find(agent => agent.address === props().profile), records);
   const close = () => closeOverlay(props().overlay);
   const action = (id, label, callback, active = false) => bevel(h_flex().id(id).h(30).px(12).gap(6).items_center().flex_none(), active,t)
     .text_size(11).text_color(active ? t.accent : t.muted).hover(s => s.opacity(.85)).on_click(callback).child(label);
@@ -21,9 +24,9 @@ export function profileCard(t, motion) {
   const ch = characterOf(a.address), pv = provider(a);
   const space = spaces().find(s => s.id === a.space), tab = space?.tabs?.find(tab => tab.id === a.tab);
   const chat = tab?.named ? tab.name : a.title || a.tab_name || "Untitled chat";
-  const tone = a.status === "working" ? t.working : a.status === "blocked" ? t.blocked : a.status === "done" ? t.done : t.dim;
-  const state = {working:"Working",blocked:"Needs you",done:"Done",idle:"Idle"}[a.status] || a.status;
-  const activity = reportedActivity(a, terminals());
+  const tone = t[a.status] || t.dim;
+  const state = STATUS_WORD[a.status] || a.status;
+  const activity = waitingActivity(a, reportedActivity(a, records));
   const fact = (label, value, color = t.foreground) => h_flex().gap(8).items_center().min_w(0)
     .child(div().w(52).flex_none().text_size(10).text_color(t.dim).child(label))
     .child(div().flex_1().min_w(0).truncate().text_size(11).text_color(color).tooltip(value || "—").child(value || "—"));

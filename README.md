@@ -35,6 +35,17 @@ These use `herdr-pr`, a small Python CLI shipped in `mods/pr-hub/herdr-pr`.
   Every PR description gets a Manual testing section where a person can check the change.
   ```
 
+## Optional: live activity and the waiting status
+
+Robots show what an agent is doing (reading, editing, running tests) and turn violet while it *waits*: on CI (`gh pr checks --watch`, `gh run watch`), a PR approval (`herdr-pr ask --wait`), a long test run, a timer, another agent, or when its turn ends saying it waits ("waiting for CI"). It stays waiting until the agent works again. Install the hooks once per machine:
+
+```sh
+python tools/install-activity-hook.py                    # Claude Code
+python tools/install-activity-hook.py --provider codex   # Codex (then trust it in /hooks)
+```
+
+Only tool names and a waiting category (`ci`, `tests`, `pr`, …) are published to herdr; commands and messages stay on the machine. Agents can also say it themselves: `python tools/herdr-crew wait ci "PR #42 checks"` (copy `herdr-crew` to `~/.local/bin` to use it as a command).
+
 ## Optional: usage & accounts
 
 The usage panel (gauge in the status bar) shows plan limits, tokens and the signed-in account for Codex and Claude Code, and opens a sign-in tab to switch accounts. It never reads your credentials. Codex needs only the `codex` CLI on `PATH`. For Claude Code run this once, after the mods are installed. It backs up `~/.claude/settings.json`, then adds a status-line command and a SessionStart hook; a status line you already had keeps running:
